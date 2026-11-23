@@ -141,14 +141,15 @@ npm run design   # needs Hallmark's local sloplint; CI skips this external gate
 npm run build
 
 cd ../backend && uv run python -m unittest discover -s tests
+cd .. && python3 -m unittest discover -s model/tests -t .   # engine; contract tests need jsonschema
 ```
 
 `npm run test:e2e` covers the twenty-four screens in English, Arabic and Chinese,
 in both themes, at 390px and at 320px, plus `axe` accessibility checks.
 
 The market, news and strategy universe is mock data in `web/src/data/mock.ts`;
-the deterministic engine is the next build. The AI and Workspace have a real
-backend path when you connect a provider.
+the engine in `model/` (stdlib Python, tested on synthetic data) is not yet wired
+to it. The AI and Workspace have a real backend path when you connect a provider.
 
 ## On a desktop
 
@@ -175,7 +176,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 ```
 web/         React + Vite + Tailwind UI, demo mode, local state
 backend/     FastAPI proxy, provider settings, tests
-model/       the one signals contract and example
+model/       the engine (stdlib only) and the two contracts: spec and signals
 docs/        product notes, the design reference set, screenshots
 dev.sh       one-command development stack
 ```
@@ -183,5 +184,5 @@ dev.sh       one-command development stack
 ---
 
 **Status:** demo-first prototype. Market/news/strategy data is mock. AI can be
-demo or your provider. The deterministic engine, live Saudi feed and production
-deployment are not built yet.
+demo or your provider. The engine runs on synthetic data only; real data, the live
+Saudi feed and production deployment are not built yet.

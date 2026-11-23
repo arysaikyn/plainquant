@@ -43,10 +43,17 @@ untraced and the UI already marks them so. It is a research assistant, not the e
 
 ## Not done yet
 
-- **The engine does not exist.** Nothing writes a Result today; `web/` reads mock data.
-- `web/src/lib/ledger.ts` and `lib/gridcheck.ts` compute in the browser what the engine
-  must compute. They are the reference for the engine's behaviour and are to be removed
-  from `web/` when it lands, not kept as a second implementation.
+- **The engine runs on synthetic data only.** `model/` writes a valid Result from a
+  seeded fixture. No real data source is chosen: the candidates (AKShare, Tushare) have
+  unverified terms and no verified announcement dates, so a vendor adapter waits for that.
+  `web/` still reads mock data.
+- `web/src/lib/ledger.ts`, `lib/gridcheck.ts` and `data/shariaCoverage.ts` hold a second
+  copy of what `model/audit.py` and `model/sharia.py` now compute. They go from `web/`
+  when it reads a Result; until then the TS tests and `model/tests/test_audit.py` pin the
+  same assertions, not bit-identical numbers (no Node here to compare them).
+- The grid check is uncalibrated. Its points are hand-set, and on pure-noise synthetic
+  data a fundamental spec still collects `volHarvest` from a 71-period regression. Treat
+  the score as a prompt to look, not a measurement, until it is tuned against known cases.
 - Factor ids (`debt_ratio`, `low_leverage`) are free strings. The factor library is the
   next contract.
 - Market differences (T+1, price limits, lot size, calendar, costs) need a per-market

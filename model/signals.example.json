@@ -11,15 +11,15 @@
     "sharia": "off",
     "filters": [
       {
-        "factor": "debt_ratio",
-        "op": "lt",
-        "value": 0.9
+        "factor": "dividend_yield",
+        "op": "gt",
+        "value": 0.01
       }
     ],
     "rank": [
       {
-        "factor": "low_leverage",
-        "direction": "desc"
+        "factor": "debt_ratio",
+        "direction": "asc"
       },
       {
         "factor": "dividend_yield",
@@ -39,7 +39,7 @@
     }
   },
   "receipt": {
-    "spec_hash": "d1c5d9255a6f9464318071a2ab74a8e88b2d75600e39fbfdb29ad998239b02ff",
+    "spec_hash": "1456c68812e275aa628d914da19851e8140d14812fead2315d8350af57a8af02",
     "data_version": "example-snapshot-2026-10-20",
     "engine_version": "0.0.0-example"
   },
@@ -50,8 +50,8 @@
       "rank": 1,
       "score": 1.82,
       "factors": {
-        "low_leverage": 1.2,
-        "dividend_yield": 0.9
+        "debt_ratio": 0.12,
+        "dividend_yield": 0.041
       },
       "sector": "Financials",
       "sharia": "unknown",
@@ -63,8 +63,8 @@
       "rank": 2,
       "score": 1.41,
       "factors": {
-        "low_leverage": 0.7,
-        "dividend_yield": 0.6
+        "debt_ratio": 0.18,
+        "dividend_yield": 0.036
       },
       "sector": "Financials",
       "sharia": "unknown",
@@ -84,8 +84,7 @@
       "score": 0,
       "verdict": "crossSection",
       "families": [
-        "fundamental",
-        "sharia"
+        "fundamental"
       ],
       "path_exposure": 0.12,
       "persistence": 0.34,
