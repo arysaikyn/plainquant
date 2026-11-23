@@ -68,6 +68,17 @@ class Contract(unittest.TestCase):
     def test_only_the_current_version_is_accepted(self):
         self.rejects(self.mut(lambda d: d.update(schema_version="1.1")))
 
+    def test_the_audit_must_explain_its_score(self):
+        def bare(d):
+            d["audit"]["grid"]["findings"] = ["priceOnly"]  # an id with no points
+
+        def no_stop(d):
+            d["audit"]["grid"]["persistence"] = {"gamma1": 0.1, "sr": 0.1}
+
+        self.rejects(self.mut(bare))
+        self.rejects(self.mut(no_stop))
+        self.rejects(self.mut(lambda d: d["audit"]["grid"].pop("findings")))
+
     def test_the_hash_must_be_a_sha256(self):
         self.rejects(self.mut(lambda d: d["receipt"].update(spec_hash="abc")))
 

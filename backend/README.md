@@ -81,6 +81,7 @@ same-origin backend.
 | GET | `/api/ai/scheduled-runs` | `/scheduled-runs` |
 | GET | `/api/ai/settings/llm` | `/settings/llm` |
 | POST | `/api/ai/upload` | `/upload` |
+| GET | `/api/engine/signals` | none: reads `model/signals.json` (or `SIGNALS_PATH`); 404 until the engine has written a run |
 
 Anything else is `404`; this is not an open proxy.
 

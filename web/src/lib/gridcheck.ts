@@ -116,6 +116,15 @@ export type GridInput = {
 
 export type GridVerdict = 'crossSection' | 'thin' | 'gridlike'
 
+/**
+ * What the grid panel reads. A run's `audit.grid` supplies exactly this, and a full
+ * `GridReport` satisfies it too, so the panel does not care who computed the check.
+ */
+export type GridView = Pick<GridReport, 'score' | 'verdict' | 'families' | 'findings'> & {
+  exposure: Pick<Exposure, 'volShare'> | null
+  persistence: Pick<Persistence, 'gamma1' | 'stop'> | null
+}
+
 export type GridReport = {
   /** 0 is a cross-sectional rule set; 100 is an order sheet a grid bot would write. */
   score: number

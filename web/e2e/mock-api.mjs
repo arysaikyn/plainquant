@@ -1,4 +1,5 @@
 import http from 'node:http'
+import { readFileSync } from 'node:fs'
 
 const PORT = 8010
 const sessions = new Map()
@@ -82,6 +83,10 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://127.0.0.1:${PORT}`)
   const path = url.pathname
   if (path === '/api/ai/health') return send(res, 200, { ok: true, upstream: 'mock' })
+  // The contract's own example stands in for the engine's latest run.
+  if (path === '/api/engine/signals') {
+    return send(res, 200, JSON.parse(readFileSync(new URL('../../model/signals.example.json', import.meta.url), 'utf8')))
+  }
   if (path === '/api/ai/runs') {
     return send(res, 200, [{
       run_id: 'run_1', status: 'completed', created_at: '2026-10-25T10:00:00Z',

@@ -42,7 +42,11 @@
     "receipt": {
       "type": "object",
       "description": "What makes the run reproducible: the same spec on the same data with the same engine gives the same result.",
-      "required": ["spec_hash", "data_version", "engine_version"],
+      "required": [
+        "spec_hash",
+        "data_version",
+        "engine_version"
+      ],
       "additionalProperties": false,
       "properties": {
         "spec_hash": {
@@ -65,7 +69,13 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["symbol", "name", "rank", "score", "factors"],
+        "required": [
+          "symbol",
+          "name",
+          "rank",
+          "score",
+          "factors"
+        ],
         "additionalProperties": false,
         "properties": {
           "symbol": {
@@ -93,7 +103,11 @@
             "type": "string"
           },
           "sharia": {
-            "enum": ["compliant", "non_compliant", "unknown"]
+            "enum": [
+              "compliant",
+              "non_compliant",
+              "unknown"
+            ]
           },
           "weight": {
             "type": "number",
@@ -106,12 +120,18 @@
     "backtest": {
       "type": "object",
       "description": "Present when the spec was run over its period. Dates and rebalance frequency are in the spec.",
-      "required": ["metrics"],
+      "required": [
+        "metrics"
+      ],
       "additionalProperties": false,
       "properties": {
         "metrics": {
           "type": "object",
-          "required": ["annual_return", "max_drawdown", "sharpe"],
+          "required": [
+            "annual_return",
+            "max_drawdown",
+            "sharpe"
+          ],
           "additionalProperties": {
             "type": "number"
           },
@@ -132,7 +152,10 @@
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["date", "value"],
+            "required": [
+              "date",
+              "value"
+            ],
             "additionalProperties": false,
             "properties": {
               "date": {
@@ -151,12 +174,19 @@
     "audit": {
       "type": "object",
       "description": "Checks that do not depend on the ranking. A strategy whose return loads on the size of a move instead of its direction is running a grid, whatever the rules say. Required: the engine cannot hand the web a result without it.",
-      "required": ["grid"],
+      "required": [
+        "grid"
+      ],
       "additionalProperties": false,
       "properties": {
         "grid": {
           "type": "object",
-          "required": ["score", "verdict", "families"],
+          "required": [
+            "score",
+            "verdict",
+            "families",
+            "findings"
+          ],
           "additionalProperties": false,
           "properties": {
             "score": {
@@ -166,7 +196,11 @@
               "description": "Grid likeness. 0 is a cross-sectional rule set; 100 is an order sheet a grid bot would write."
             },
             "verdict": {
-              "enum": ["crossSection", "thin", "gridlike"]
+              "enum": [
+                "crossSection",
+                "thin",
+                "gridlike"
+              ]
             },
             "families": {
               "type": "array",
@@ -185,29 +219,78 @@
               "description": "Factor families the rules read. A set, so order is not meaningful."
             },
             "path_exposure": {
-              "type": ["number", "null"],
+              "type": [
+                "number",
+                "null"
+              ],
               "minimum": 0,
               "maximum": 1,
               "description": "Share of the run's return that needs |market move| rather than the signed move. Null when there is no equity curve."
             },
             "persistence": {
-              "type": ["number", "null"],
-              "minimum": -1,
-              "maximum": 1,
-              "description": "Lag-one autocorrelation of the run's returns at the backtest frequency. Null when there is no equity curve."
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "gamma1",
+                    "sr",
+                    "stop"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "gamma1": {
+                      "type": "number",
+                      "minimum": -1,
+                      "maximum": 1,
+                      "description": "Lag-one autocorrelation of the run's returns at the backtest frequency. Negative means mean reversion."
+                    },
+                    "sr": {
+                      "type": "number",
+                      "description": "Mean over standard deviation of the same returns, per observation."
+                    },
+                    "stop": {
+                      "enum": [
+                        "adds",
+                        "insurance",
+                        "hurts"
+                      ],
+                      "description": "Kaminski and Lo: whether a stop would add return at this horizon. Describes the data; the product has no stop."
+                    }
+                  }
+                }
+              ],
+              "description": "Null when there is no equity curve."
             },
             "findings": {
               "type": "array",
+              "description": "Every finding the score was charged for, with its points.",
               "items": {
-                "enum": [
-                  "noExitPolicy",
-                  "priceOnly",
-                  "shortDecay",
-                  "volHarvest",
-                  "stopHurts",
-                  "highTurnover",
-                  "concentrated"
-                ]
+                "type": "object",
+                "required": [
+                  "id",
+                  "points"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "enum": [
+                      "noExitPolicy",
+                      "priceOnly",
+                      "shortDecay",
+                      "volHarvest",
+                      "stopHurts",
+                      "highTurnover",
+                      "concentrated"
+                    ]
+                  },
+                  "points": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
               }
             }
           }
@@ -227,18 +310,32 @@
       "if": {
         "properties": {
           "spec": {
-            "properties": { "sharia": { "const": "compliant_only" } },
-            "required": ["sharia"]
+            "properties": {
+              "sharia": {
+                "const": "compliant_only"
+              }
+            },
+            "required": [
+              "sharia"
+            ]
           }
         },
-        "required": ["spec"]
+        "required": [
+          "spec"
+        ]
       },
       "then": {
         "properties": {
           "rows": {
             "items": {
-              "required": ["sharia"],
-              "properties": { "sharia": { "const": "compliant" } }
+              "required": [
+                "sharia"
+              ],
+              "properties": {
+                "sharia": {
+                  "const": "compliant"
+                }
+              }
             }
           }
         }

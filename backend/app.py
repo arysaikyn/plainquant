@@ -187,6 +187,22 @@ async def proxy(path: str, request: Request) -> Response:
     return await upstream_request(request.method, path, request)
 
 
+# The engine writes one file per run; the app reads the latest. Read-only, one fixed path,
+# nothing from the request reaches the filesystem.
+SIGNALS_PATH = Path(
+    os.getenv("SIGNALS_PATH", Path(__file__).resolve().parent.parent / "model" / "signals.json")
+)
+
+
+@app.get("/api/engine/signals")
+async def signals() -> Response:
+    try:
+        body = SIGNALS_PATH.read_bytes()
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="No run yet") from None
+    return Response(content=body, media_type="application/json", headers={"Cache-Control": "no-cache"})
+
+
 WEB_DIST = Path(os.getenv("WEB_DIST", Path(__file__).resolve().parent.parent / "web" / "dist"))
 
 if (WEB_DIST / "index.html").is_file():

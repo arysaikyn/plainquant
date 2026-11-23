@@ -187,6 +187,12 @@ def grid_block(report: dict) -> dict:
         "verdict": report["verdict"],
         "families": report["families"],
         "path_exposure": None if exposure is None else min(1.0, max(0.0, exposure["vol_share"])),
-        "persistence": None if persistence is None else min(1.0, max(-1.0, persistence["gamma1"])),
-        "findings": [f["id"] for f in report["findings"]],
+        "persistence": None
+        if persistence is None
+        else {
+            "gamma1": min(1.0, max(-1.0, persistence["gamma1"])),
+            "sr": persistence["sr"],
+            "stop": persistence["stop"],
+        },
+        "findings": [{"id": f["id"], "points": f["points"]} for f in report["findings"]],
     }

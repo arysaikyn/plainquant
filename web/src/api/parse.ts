@@ -30,17 +30,17 @@ import { AiApiError } from './errors'
 const unexpected = (what: string) =>
   new AiApiError(`The agent returned an unreadable response (${what}).`, 0)
 
-function asRecord(raw: unknown, what: string): Record<string, unknown> {
+export function asRecord(raw: unknown, what: string): Record<string, unknown> {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw unexpected(what)
   return raw as Record<string, unknown>
 }
 
-function asArray(raw: unknown, what: string): unknown[] {
+export function asArray(raw: unknown, what: string): unknown[] {
   if (!Array.isArray(raw)) throw unexpected(what)
   return raw
 }
 
-function needString(raw: unknown, what: string): string {
+export function needString(raw: unknown, what: string): string {
   if (typeof raw !== 'string') throw unexpected(what)
   return raw
 }
@@ -53,7 +53,7 @@ function stringOrNull(raw: unknown): string | null {
   return typeof raw === 'string' ? raw : null
 }
 
-function finiteNumber(raw: unknown): number | null {
+export function finiteNumber(raw: unknown): number | null {
   if (typeof raw === 'number' && Number.isFinite(raw)) return raw
   // The agent writes equity as a number or a formatted string; both are accepted.
   if (typeof raw === 'string') {

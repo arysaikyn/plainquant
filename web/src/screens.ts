@@ -45,6 +45,7 @@ export const SCREENS: readonly Screen[] = [
   { pattern: '/ai/provider', title: 'route.aiProvider', tab: '/ai', sample: '/ai/provider', load: () => import('./routes/ai/ProviderPage') },
   { pattern: '/strategy', title: 'route.strategy', tab: '/strategy', sample: '/strategy', isTab: true, warm: true, load: () => import('./routes/strategy') },
   { pattern: '/strategy/graveyard', title: 'route.strategy', tab: '/strategy', sample: '/strategy/graveyard', load: () => import('./routes/strategy/Graveyard') },
+  { pattern: '/run', title: 'route.run', tab: '/strategy', sample: '/run', load: () => import('./routes/run') },
   { pattern: '/strategy/:id', title: 'route.strategyDetail', tab: '/strategy', sample: '/strategy/low-debt-value', load: () => import('./routes/strategy/StrategyDetail') },
   { pattern: '/me', title: 'route.me', tab: '/me', sample: '/me', isTab: true, warm: true, load: () => import('./routes/me') },
   { pattern: '/screener', title: 'route.screener', tab: '/', sample: '/screener', load: () => import('./routes/screener') },

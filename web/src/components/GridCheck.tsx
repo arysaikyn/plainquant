@@ -1,7 +1,7 @@
 import { fmtNum, useI18n } from '../i18n'
 import type { Lang } from '../i18n'
 import { familySummary } from '../lib/gridcheck'
-import type { FamilySummary, GridReason, GridReport } from '../lib/gridcheck'
+import type { FamilySummary, GridReason, GridReport, GridView } from '../lib/gridcheck'
 
 /**
  * The gate that keeps a rule set from turning into a grid bot.
@@ -140,7 +140,7 @@ const VERDICT_STYLE: Record<
   },
 }
 
-export function GridCheck({ report, compact = false }: { report: GridReport; compact?: boolean }) {
+export function GridCheck({ report, compact = false }: { report: GridView; compact?: boolean }) {
   const { lang } = useI18n()
   const t = COPY[lang]
   const style = VERDICT_STYLE[report.verdict]

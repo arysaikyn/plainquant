@@ -28,7 +28,7 @@ npm run test:e2e        # route matrix + AI stream (Playwright, system Chrome)
 
 Five tabs: markets (`/`), news (`/news`), AI (`/ai`), strategies
 (`/strategy`), profile (`/me`). Deeper screens: symbol, article, strategy
-detail, report, screener, alerts, review, calendar, compare, runs, glossary,
+detail, engine run (`/run`, the one screen that reads a real engine result), report, screener, alerts, review, calendar, compare, runs, glossary,
 search, sector, watchlists, settings, and a real 404.
 
 ## Structure

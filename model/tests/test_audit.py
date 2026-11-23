@@ -115,7 +115,9 @@ class Check(unittest.TestCase):
     def test_the_contract_block_is_in_range(self):
         block = grid_block(grid_check(["momentum"], True, curve=curve_of(CHOP), bench=curve_of(CHOP)))
         self.assertTrue(0 <= block["path_exposure"] <= 1)
-        self.assertTrue(-1 <= block["persistence"] <= 1)
+        self.assertTrue(-1 <= block["persistence"]["gamma1"] <= 1)
+        self.assertIn(block["persistence"]["stop"], ("adds", "insurance", "hurts"))
+        self.assertTrue(all(set(f) == {"id", "points"} for f in block["findings"]))
 
 
 if __name__ == "__main__":

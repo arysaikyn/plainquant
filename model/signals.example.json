@@ -87,7 +87,11 @@
         "fundamental"
       ],
       "path_exposure": 0.12,
-      "persistence": 0.34,
+      "persistence": {
+        "gamma1": 0.34,
+        "sr": 0.21,
+        "stop": "adds"
+      },
       "findings": []
     }
   },

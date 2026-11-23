@@ -145,12 +145,12 @@ cd .. && python3 -m unittest discover -s model/tests -t .   # engine; contract t
 python3 -m unittest discover -s agent/tests -t .             # agent boundary; needs jsonschema
 ```
 
-`npm run test:e2e` covers the twenty-three screens in English, Arabic and Chinese,
+`npm run test:e2e` covers the twenty-four screens in English, Arabic and Chinese,
 in both themes, at 390px and at 320px, plus `axe` accessibility checks.
 
-The market, news and strategy universe is mock data in `web/src/data/mock.ts`;
-the engine in `model/` (stdlib Python, tested on synthetic data) is not yet wired
-to it. The AI and Workspace have a real backend path when you connect a provider.
+The market, news and strategy universe is mock data in `web/src/data/mock.ts`.
+The engine in `model/` (stdlib Python, tested on synthetic data) is wired to one
+screen, `/run`, which reads the latest `model/signals.json` through the backend. The AI and Workspace have a real backend path when you connect a provider.
 
 ## On a desktop
 

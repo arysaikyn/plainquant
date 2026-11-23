@@ -175,11 +175,11 @@ class Run(unittest.TestCase):
 
     def test_a_price_only_spec_is_charged_by_the_audit(self):
         r = run(spec(filters=[], rank=[{"factor": "momentum_6m", "direction": "desc"}]), self.snap, "q", NOW)
-        self.assertIn("priceOnly", r["audit"]["grid"]["findings"])
+        self.assertIn("priceOnly", [f["id"] for f in r["audit"]["grid"]["findings"]])
 
     def test_a_fundamental_spec_is_not(self):
         r = run(spec(), self.snap, "q", NOW)
-        self.assertNotIn("priceOnly", r["audit"]["grid"]["findings"])
+        self.assertNotIn("priceOnly", [f["id"] for f in r["audit"]["grid"]["findings"]])
 
     def test_every_registered_factor_has_a_known_family(self):
         from ..audit import PRICE_BLOCK
