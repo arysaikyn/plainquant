@@ -1,5 +1,6 @@
 import type { GridView } from '../lib/gridcheck'
-import type { FactorFamily, GridReason } from '../lib/gridcheck'
+import { FAMILY_DECAY, GRID_REASONS } from '../lib/gridcheck'
+import type { FactorFamily } from '../lib/gridcheck'
 import { asArray, asRecord, finiteNumber, needString } from './parse'
 
 /**
@@ -71,8 +72,7 @@ function needNumber(raw: unknown, what: string): number {
   return n
 }
 
-const FAMILIES: readonly FactorFamily[] = ['price', 'volume', 'momentum', 'reversal', 'volatility', 'fundamental', 'sharia', 'event']
-const REASONS: readonly GridReason[] = ['noExitPolicy', 'priceOnly', 'shortDecay', 'volHarvest', 'stopHurts', 'highTurnover', 'concentrated']
+const FAMILIES = Object.keys(FAMILY_DECAY) as FactorFamily[]
 
 function parseSpec(raw: unknown): Spec {
   const r = asRecord(raw, 'spec')
@@ -132,7 +132,7 @@ function parseGrid(raw: unknown): GridView {
     families: asArray(g.families, 'grid.families').map((f) => pick(f, FAMILIES, 'grid.family')),
     findings: asArray(g.findings, 'grid.findings').map((item) => {
       const f = asRecord(item, 'grid.finding')
-      return { id: pick(f.id, REASONS, 'finding.id'), points: needNumber(f.points, 'finding.points') }
+      return { id: pick(f.id, GRID_REASONS, 'finding.id'), points: needNumber(f.points, 'finding.points') }
     }),
     exposure:
       g.path_exposure === null || g.path_exposure === undefined

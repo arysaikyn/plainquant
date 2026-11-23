@@ -191,7 +191,6 @@ def grid_block(report: dict) -> dict:
         if persistence is None
         else {
             "gamma1": min(1.0, max(-1.0, persistence["gamma1"])),
-            "sr": persistence["sr"],
             "stop": persistence["stop"],
         },
         "findings": [{"id": f["id"], "points": f["points"]} for f in report["findings"]],

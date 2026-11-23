@@ -14,7 +14,7 @@ import sys
 from datetime import datetime, timezone
 
 from . import store
-from .run import canonical, run
+from .run import run
 
 
 def main(argv: list[str] | None = None) -> int:

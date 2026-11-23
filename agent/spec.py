@@ -36,6 +36,7 @@ MAX_REPAIRS = 2
 
 
 def system_prompt(universes: dict[str, str], today: str) -> str:
+    refusals = ", ".join(json.dumps({"refuse": rule}) for rule in REFUSALS)
     factors = "\n".join(f"- {f.id} ({f.family})" for f in REGISTRY.values())
     return f"""You turn a retail investor's question into a strategy spec. Reply with one JSON object and nothing else.
 
@@ -53,7 +54,7 @@ costs fee_rate {DEFAULTS["fee_rate"]} and slip_rate {DEFAULTS["slip_rate"]}, and
 
 A holding ends by leaving the ranking. There is no stop-loss, take-profit or entry price in this product; do not invent one.
 If the question asks you to place an order, promises a guaranteed result, or asks what to buy or sell, do not write a spec. \
-Reply {{"refuse": "execution"}}, {{"refuse": "guarantee"}} or {{"refuse": "advice"}}."""
+Reply with one of: {refusals}."""
 
 
 def extract_json(text: str) -> dict | None:

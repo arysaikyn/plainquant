@@ -104,7 +104,7 @@ Gaps between the strategy screen and a Result, and how each was settled:
 
 | The screen wanted | In a Result? | Settled |
 |---|---|---|
-| Grid finding points, persistence `sr` and `stop` | no | added to the contract: `findings` is `{id, points}`, `persistence` is `{gamma1, sr, stop}`; without them a Result explained its score less than the engine had |
+| Grid finding points, persistence `sr` and `stop` | no | added to the contract: `findings` is `{id, points}`, `persistence` is `{gamma1, stop}`; without them a Result explained its score less than the engine had |
 | Gross curve and cost row | no | not shown; the costs appear as a rule |
 | Localized rule labels | no, by design | web owns them, keyed by factor id (`routes/run/strings.ts`); an id with no label is shown as itself |
 | Deflated Sharpe | no: needs a trial count | not shown; it stays on the labelled demo screens |

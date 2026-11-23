@@ -27,6 +27,37 @@ def validator(schema):
     return Draft202012Validator(schema, resolver=RefResolver.from_schema(schema, store=store))
 
 
+class Vocabulary(unittest.TestCase):
+    """Words the schema, the engine and the web each write down must stay the same words."""
+
+    grid = SIG_S["properties"]["audit"]["properties"]["grid"]["properties"]
+
+    def test_the_engine_speaks_the_schemas_vocabulary(self):
+        import re
+
+        from .. import audit, backtest, factors, sharia
+
+        families = set(self.grid["families"]["items"]["enum"])
+        self.assertEqual(set(audit.PRICE_BLOCK), families)
+        self.assertEqual(set(audit.FAMILY_DECAY), families)
+        self.assertLessEqual({f.family for f in factors.REGISTRY.values()}, families)
+        emitted = set(re.findall(r'"id": "(\w+)"', Path(audit.__file__).read_text()))
+        self.assertEqual(emitted, set(self.grid["findings"]["items"]["properties"]["id"]["enum"]))
+        self.assertEqual(set(backtest.PERIODS_PER_YEAR), set(SPEC_S["properties"]["rebalance"]["enum"]))
+        states = {
+            sharia.verdict(lambda key, v=v: v.get(key))["status"]
+            for v in (
+                {"debt_ratio": 0.1, "interest_bearing_ratio": 0.1, "impure_income_ratio": 0.0, "receivables_ratio": 0.1},
+                {"debt_ratio": 0.9, "interest_bearing_ratio": 0.1, "impure_income_ratio": 0.0, "receivables_ratio": 0.1},
+                {},
+            )
+        }
+        self.assertEqual(states, set(SIG_S["properties"]["rows"]["items"]["properties"]["sharia"]["enum"]))
+        self.assertEqual(
+            {"adds", "insurance", "hurts"}, set(self.grid["persistence"]["oneOf"][1]["properties"]["stop"]["enum"])
+        )
+
+
 @unittest.skipIf(Draft202012Validator is None, "jsonschema is not installed")
 class Contract(unittest.TestCase):
     @classmethod
@@ -73,7 +104,7 @@ class Contract(unittest.TestCase):
             d["audit"]["grid"]["findings"] = ["priceOnly"]  # an id with no points
 
         def no_stop(d):
-            d["audit"]["grid"]["persistence"] = {"gamma1": 0.1, "sr": 0.1}
+            d["audit"]["grid"]["persistence"] = {"gamma1": 0.1}
 
         self.rejects(self.mut(bare))
         self.rejects(self.mut(no_stop))

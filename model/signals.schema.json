@@ -236,7 +236,6 @@
                   "type": "object",
                   "required": [
                     "gamma1",
-                    "sr",
                     "stop"
                   ],
                   "additionalProperties": false,
@@ -247,17 +246,13 @@
                       "maximum": 1,
                       "description": "Lag-one autocorrelation of the run's returns at the backtest frequency. Negative means mean reversion."
                     },
-                    "sr": {
-                      "type": "number",
-                      "description": "Mean over standard deviation of the same returns, per observation."
-                    },
                     "stop": {
                       "enum": [
                         "adds",
                         "insurance",
                         "hurts"
                       ],
-                      "description": "Kaminski and Lo: whether a stop would add return at this horizon. Describes the data; the product has no stop."
+                      "description": "Kaminski and Lo: whether a stop would add return at this horizon, judged by gamma1 against the run's per-observation Sharpe. Describes the data; the product has no stop."
                     }
                   }
                 }

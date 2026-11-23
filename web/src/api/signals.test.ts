@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { FAMILY_DECAY, GRID_REASONS } from '../lib/gridcheck'
 import { parseSignals, SignalsError } from './signals'
 
 /** The contract's own example, read from model/: the parser and the schema share one file. */
@@ -73,5 +74,38 @@ describe('parseSignals', () => {
     doc.spec.sharia = 'compliant_only'
     doc.rows.forEach((r: Record<string, unknown>) => (r.sharia = 'compliant'))
     expect(parseSignals(doc).rows.every((r) => r.sharia === 'compliant')).toBe(true)
+  })
+})
+
+/** The parser must accept every word the schema allows, so a word added there fails here first. */
+describe('the parser speaks the schema vocabulary', () => {
+  const schema = JSON.parse(readFileSync(resolve(process.cwd(), '../model/signals.schema.json'), 'utf8'))
+  const spec = JSON.parse(readFileSync(resolve(process.cwd(), '../model/spec.schema.json'), 'utf8'))
+  const grid = schema.properties.audit.properties.grid.properties
+
+  const accepted: [string, string[], (d: Record<string, any>, v: string) => void][] = [
+    ['grid verdict', grid.verdict.enum, (d, v) => (d.audit.grid.verdict = v)],
+    ['persistence stop', grid.persistence.oneOf[1].properties.stop.enum, (d, v) => (d.audit.grid.persistence.stop = v)],
+    ['factor family', grid.families.items.enum, (d, v) => (d.audit.grid.families = [v])],
+    ['finding id', grid.findings.items.properties.id.enum, (d, v) => (d.audit.grid.findings = [{ id: v, points: 5 }])],
+    ['rebalance', spec.properties.rebalance.enum, (d, v) => (d.spec.rebalance = v)],
+    ['filter operator', spec.properties.filters.items.properties.op.enum, (d, v) => (d.spec.filters[0].op = v)],
+    ['rank direction', spec.properties.rank.items.properties.direction.enum, (d, v) => (d.spec.rank[0].direction = v)],
+    ['row sharia', schema.properties.rows.items.properties.sharia.enum, (d, v) => (d.rows[0].sharia = v)],
+  ]
+  for (const [name, values, set] of accepted) {
+    it(`accepts every ${name} the schema allows`, () => {
+      expect(values.length).toBeGreaterThan(0)
+      for (const value of values) {
+        const doc = clone()
+        set(doc, value)
+        expect(() => parseSignals(doc), `${name} ${value}`).not.toThrow()
+      }
+    })
+  }
+
+  it('lists exactly the families and findings the schema lists', () => {
+    expect(Object.keys(FAMILY_DECAY).sort()).toEqual([...grid.families.items.enum].sort())
+    expect([...GRID_REASONS].sort()).toEqual([...grid.findings.items.properties.id.enum].sort())
   })
 })

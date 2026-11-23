@@ -74,6 +74,18 @@ export type GridReason =
   /** One name can carry the result. */
   | 'concentrated'
 
+/** Completeness is checked by the compiler: a new reason must be listed here to build. */
+const REASON_SET: Record<GridReason, true> = {
+  noExitPolicy: true,
+  priceOnly: true,
+  shortDecay: true,
+  volHarvest: true,
+  stopHurts: true,
+  highTurnover: true,
+  concentrated: true,
+}
+export const GRID_REASONS = Object.keys(REASON_SET) as GridReason[]
+
 export type GridFinding = { id: GridReason; points: number }
 
 /** `curve_i = alpha + betaDrift * bench_i + betaVol * |bench_i|`, ordinary least squares. */
