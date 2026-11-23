@@ -68,7 +68,6 @@ Two habits this layout depends on:
    `FIELD_*` table per concern, and a `Record<Field, …>` that fails to list a
    new field fails the build.
 - `src/api/ai.ts` — the session/SSE and workspace client for the local AI backend.
-- `src/data/` — mock universe for the non-AI screens.
 - `src/theme.tsx` — dark, light, or system; resolved before first paint by
   the inline script in `index.html`.
 - `public/` — manifest, icons and the offline shell worker.

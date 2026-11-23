@@ -9,8 +9,8 @@ web (React)  ->  backend :8000  ->  vibe-trading :8899  ->  LLM + tools
 ```
 
 The AI tab is Vibe-Trading's agent: the same sessions, tool calls, streaming
-answers, backtests and run artifacts. There are no canned replies in the web
-app. The UI exposes chat, the tool timeline, run cards, stop, session history, and a
+answers, backtests and run artifacts. Live mode has no canned replies; the web
+app's demo mode (no provider connected) does. The UI exposes chat, the tool timeline, run cards, stop, session history, and a
 Workspace with runs, paper accounts, portfolio status, alpha index, scheduled
 jobs, model status and file uploads. Deep research, swarm, options and
 correlation start as prefilled agent prompts, so they use the same upstream

@@ -22,7 +22,7 @@ UPSTREAM_KEY = os.getenv("VIBE_API_KEY", "")
 REQUEST_TIMEOUT = float(os.getenv("VIBE_REQUEST_TIMEOUT", "120"))
 SESSION_RE = re.compile(r"^[A-Za-z0-9_-]{1,80}$")
 
-app = FastAPI(title="KFUPM Quant backend", version="0.1.0")
+app = FastAPI(title="plainquant backend", version="0.1.0")
 
 origins = os.getenv(
     "CORS_ORIGINS",

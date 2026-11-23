@@ -1,5 +1,5 @@
 [project]
-name = "kfupm-backend"
+name = "plainquant-backend"
 version = "0.1.0"
 description = "Local AI backend: a narrow, authenticated proxy in front of Vibe-Trading."
 requires-python = ">=3.11"
