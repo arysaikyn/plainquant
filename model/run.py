@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from pathlib import Path
 
 from . import audit
 from .backtest import run_backtest
@@ -18,6 +19,26 @@ from .snapshot import Snapshot
 
 ENGINE_VERSION = "0.1.0"
 SCHEMA_VERSION = "1.2"
+
+# The spec contract is closed. Reading its property lists from the schema file keeps the
+# set of allowed fields in one place, and lets the engine refuse a stop_loss on its own
+# instead of trusting every caller to have validated.
+_SPEC_SCHEMA = json.loads((Path(__file__).parent / "spec.schema.json").read_text(encoding="utf-8"))
+
+
+def _undefined_fields(schema: dict, value, path: str = "spec") -> list[str]:
+    out: list[str] = []
+    if isinstance(value, dict) and schema.get("type") == "object":
+        props = schema.get("properties", {})
+        for key, item in value.items():
+            if key in props:
+                out += _undefined_fields(props[key], item, f"{path}.{key}")
+            else:
+                out.append(f"{path}.{key}")
+    elif isinstance(value, list) and "items" in schema:
+        for i, item in enumerate(value):
+            out += _undefined_fields(schema["items"], item, f"{path}[{i}]")
+    return out
 
 
 def canonical(obj) -> str:
@@ -38,6 +59,9 @@ def _families(spec: dict) -> list[str]:
 
 
 def run(spec: dict, snap: Snapshot, query: str, generated_at: str) -> dict:
+    undefined = _undefined_fields(_SPEC_SCHEMA, spec)
+    if undefined:
+        raise ValueError(f"spec has fields the contract does not define: {', '.join(undefined)}")
     if snap.universe != spec["universe"]:
         raise ValueError(f"snapshot carries {snap.universe!r}, spec asks for {spec['universe']!r}")
     families = _families(spec)  # raises on an unregistered factor, before any work

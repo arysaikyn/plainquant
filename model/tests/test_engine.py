@@ -157,6 +157,14 @@ class Run(unittest.TestCase):
         self.assertEqual([row["rank"] for row in r["rows"]], list(range(1, len(r["rows"]) + 1)))
         self.assertAlmostEqual(sum(row["weight"] for row in r["rows"]), 1.0)
 
+    def test_a_field_the_contract_does_not_define_is_refused_even_unvalidated(self):
+        for bad in (spec(stop_loss=0.05), spec(take_profit=0.1), spec(entry_price=10)):
+            with self.assertRaisesRegex(ValueError, "does not define"):
+                run(bad, self.snap, "q", NOW)
+        nested = spec(filters=[{"factor": "debt_ratio", "op": "lt", "value": 0.9, "stop": 1}])
+        with self.assertRaisesRegex(ValueError, r"filters\[0\]\.stop"):
+            run(nested, self.snap, "q", NOW)
+
     def test_an_unregistered_factor_is_refused(self):
         with self.assertRaises(ValueError):
             run(spec(rank=[{"factor": "vibes", "direction": "desc"}]), self.snap, "q", NOW)

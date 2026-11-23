@@ -49,8 +49,11 @@ untraced and the UI already marks them so. It is a research assistant, not the e
   `web/` still reads mock data.
 - `web/src/lib/ledger.ts`, `lib/gridcheck.ts` and `data/shariaCoverage.ts` hold a second
   copy of what `model/audit.py` and `model/sharia.py` now compute. They go from `web/`
-  when it reads a Result; until then the TS tests and `model/tests/test_audit.py` pin the
-  same assertions, not bit-identical numbers (no Node here to compare them).
+  when it reads a Result. `audit.py` was checked against the compiled `gridcheck.ts` on
+  the same inputs (2026-11-23, Node 22.23.5): noise, regression coefficients, `gamma1`,
+  `sr` and the full report agree to the last digit. That check is a one-off, not in CI.
+  `sharia.py` is a logic port (same precedence and caps), not a numeric comparison: the
+  TS side reads mock fundamentals.
 - The grid check is uncalibrated. Its points are hand-set, and on pure-noise synthetic
   data a fundamental spec still collects `volHarvest` from a 71-period regression. Treat
   the score as a prompt to look, not a measurement, until it is tuned against known cases.
@@ -67,3 +70,35 @@ untraced and the UI already marks them so. It is a research assistant, not the e
   adapter in the engine. `costs` in the spec carries only the rates.
 - The Saudi data source is unverified (`product.md`, open question 1). The `sa` market is
   in the enum and nothing more.
+
+## Wiring the web app: the gap, field by field
+
+The strategy screen was built on a mock `Strategy`, not on a Result, so reading a Result
+there is a redesign and not a swap. What it needs against what a Result carries:
+
+| The screen needs | In a Result? | Call |
+|---|---|---|
+| Net equity curve, return, drawdown, Sharpe, turnover | yes (`backtest`) | use it |
+| Ranked names, scores, weights, Sharia state | yes (`rows`) | use it |
+| Receipt: spec, data version, engine version | yes (`spec`, `receipt`) | replaces the FNV receipt |
+| Grid score, verdict, families, findings, exposure, persistence | yes (`audit.grid`) | use it |
+| Grid `stop` verdict and `sr` | no: only `gamma1` | add one enum to `audit.grid`, or drop the line |
+| Gross curve and cost row | no | derive from `spec.costs` and `turnover`, or drop |
+| Localized rule labels and descriptions | no, by design | web owns labels keyed by factor id |
+| Deflated Sharpe | no: needs a trial count the engine has no concept of | keep labelled demo, or delete; do not invent trials |
+| Drop ledger (why each name was excluded) | no: holdings only | add a funnel to the Result only when a screen needs it |
+| Cross-market lens | no: one market per run | out until a second market has real data |
+
+Recommendation: do not retrofit `StrategyDetail`. Add one screen that renders a Result as
+it is (question, the spec as a sentence, receipt, metrics, curve, rows, grid), as one row
+in `screens.ts` plus its translations, and let the mock screens keep their demo label.
+Then move the screener's live grid check behind the backend (`app.py` gains an allowlisted
+engine path) and delete the TS copies. That is a UI design decision and a contract
+addition (`stop`), so it waits for you.
+
+## Running it
+
+    python3 -m model SPEC.json SNAPSHOT_DIR --query "..." -o model/signals.json
+
+`model/signals.json` is generated and gitignored. Tests: `python3 -m unittest discover -s
+model/tests -t .`; the contract tests need `jsonschema` and are skipped without it.
