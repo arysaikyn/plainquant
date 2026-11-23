@@ -142,6 +142,7 @@ npm run build
 
 cd ../backend && uv run python -m unittest discover -s tests
 cd .. && python3 -m unittest discover -s model/tests -t .   # engine; contract tests need jsonschema
+python3 -m unittest discover -s agent/tests -t .             # agent boundary; needs jsonschema
 ```
 
 `npm run test:e2e` covers the twenty-four screens in English, Arabic and Chinese,
@@ -177,6 +178,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 web/         React + Vite + Tailwind UI, demo mode, local state
 backend/     FastAPI proxy, provider settings, tests
 model/       the engine (stdlib only) and the two contracts: spec and signals
+agent/       question -> spec, result -> claims, and the eval that measures them
 docs/        product notes, the design reference set, screenshots
 dev.sh       one-command development stack
 ```

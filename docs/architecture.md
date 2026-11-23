@@ -34,9 +34,20 @@ question --LLM--> Spec --engine + data snapshot--> Result --LLM--> claims --> we
 ## What the model may do
 
 It may write a spec and explain a result. It may not write a number the result does not
-contain. Today `routes/ai/numerals.ts` checks this after the fact by scanning the answer;
-that is a lint. The structural form is for the model to emit claims that reference result
-fields (`metrics.sharpe`) and for the renderer to fill in the value.
+contain. Both are enforced in `agent/`, with the model behind one function,
+`complete(messages) -> str`:
+
+- `agent/spec.py` extracts the model's JSON, validates it against `spec.schema.json`, the
+  factor registry and the available universes, and gives the model two repairs. It fails
+  rather than guesses. A question that asks for an order, a guarantee or a pick is
+  answered `{"refuse": rule}`, the three rules of `lib/refusal.ts`.
+- `agent/claims.py` takes sentences with slots (`{backtest.metrics.sharpe}`). The value
+  comes from the Result; a sentence with a digit of its own, or a slot that names nothing,
+  is dropped. The renderer gets segments and formats them with the web's number formatter.
+  `routes/ai/numerals.ts`, which scans a finished answer, stays for Vibe-Trading's free
+  text, the one path that cannot use claims.
+- `agent/evaluate.py` and `agent/evals/spec_cases.json` score a model on eight questions:
+  how many become a valid spec, how many say what was asked, how many refusals are right.
 
 Vibe-Trading sits outside this boundary. It runs model-written Python, so its numbers are
 untraced and the UI already marks them so. It is a research assistant, not the engine.
@@ -57,6 +68,14 @@ untraced and the UI already marks them so. It is a research assistant, not the e
 - The grid check is uncalibrated. Its points are hand-set, and on pure-noise synthetic
   data a fundamental spec still collects `volHarvest` from a 71-period regression. Treat
   the score as a prompt to look, not a measurement, until it is tuned against known cases.
+- **No model has been run against `agent/`.** The boundary is tested with scripted replies;
+  whether a real model writes valid specs from the prompt is unmeasured, and that is what
+  the eval is for. `agent/` needs `jsonschema` at runtime; it is declared nowhere yet and
+  belongs in `backend/pyproject.toml` when the backend imports it. Nothing in `backend/` or
+  `web/` calls `agent/` yet.
+- `agent/spec.py` holds the defaults for a silent question (fee 0.0015, slippage 0.005,
+  top 10) and the three refusal names, which `web/src/data/costs.ts` and `lib/refusal.ts`
+  also hold. Delete the web copies when web reads a Result.
 - Factor ids are free strings in `spec.schema.json`; the closed vocabulary is the registry
   in `model/factors.py`. A spec that names an unregistered factor passes the schema and is
   refused by the engine. Listing the ids in the schema would make that one check, not two,

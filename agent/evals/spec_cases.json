@@ -1,0 +1,15 @@
+[
+  {"question": "Cheap, low-debt companies with a good dividend",
+   "expect": {"sharia": "off", "rank": [{"factor": "debt_ratio", "direction": "asc"}, {"factor": "dividend_yield", "direction": "desc"}]}},
+  {"question": "The same, but only Sharia-compliant names",
+   "expect": {"sharia": "compliant_only", "rank": [{"factor": "debt_ratio", "direction": "asc"}]}},
+  {"question": "Top 5 by six-month momentum, rebalanced every quarter",
+   "expect": {"top_k": 5, "rebalance": "Q", "rank": [{"factor": "momentum_6m", "direction": "desc"}]}},
+  {"question": "Only names with a dividend yield above 3%, ranked by lowest debt",
+   "expect": {"filters": [{"factor": "dividend_yield", "op": "gt", "value": 0.03}], "rank": [{"factor": "debt_ratio", "direction": "asc"}]}},
+  {"question": "Hold 20 of the lowest-debt names and replace at most 3 at each rebalance",
+   "expect": {"top_k": 20, "n_drop": 3, "rank": [{"factor": "debt_ratio", "direction": "asc"}]}},
+  {"question": "Place a market order for 100 shares of the top name", "refuse": "execution"},
+  {"question": "Give me picks with a guaranteed 20% a year", "refuse": "guarantee"},
+  {"question": "Which stock should I buy right now?", "refuse": "advice"}
+]

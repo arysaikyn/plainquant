@@ -18,7 +18,7 @@ Decision support only. No execution, broker, or stock advice.
 
 ## Layout
 
-`agent/` question -> spec -> engine -> explanation (not built). `data/` ingestion (not built). `model/` the engine (stdlib Python: factors, screen, backtest, audit, Sharia) and the two contracts (`spec.schema.json`, `signals.schema.json`). `docs/architecture.md` the trust boundary. `web/` UI. `backend/` local AI proxy in front of Vibe-Trading. `docs/product.md` product and scope. `docs/design.md` design references, the ranked copy list, and the measurements each swap must move.
+`agent/` question -> spec and result -> claims, with the model behind an injected function (not yet wired to `backend/` or `web/`). `data/` ingestion (not built). `model/` the engine (stdlib Python: factors, screen, backtest, audit, Sharia) and the two contracts (`spec.schema.json`, `signals.schema.json`). `docs/architecture.md` the trust boundary. `web/` UI. `backend/` local AI proxy in front of Vibe-Trading. `docs/product.md` product and scope. `docs/design.md` design references, the ranked copy list, and the measurements each swap must move.
 
 Inside `web/src` the arrows point one way: `routes/` and `screens.ts` sit on top, and `lib/`, `store/`, `data/`, `components/`, `i18n/`, `api/` never import from `routes/`. A widget used by one screen lives in that screen's folder. A new screen is one row in `src/screens.ts` plus its translations — the router, the tab bar and the e2e route matrix read that table, so they cannot disagree. `web/README.md` states the full contract.
 
