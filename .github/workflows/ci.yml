@@ -24,6 +24,19 @@ jobs:
       - run: npm run test
       - run: npm run build
 
+  engine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # Pinned to the version the contract tests were written against; RefResolver is
+      # deprecated upstream, so move this together with test_contract.py.
+      - run: python -m pip install jsonschema==4.10.3
+      - run: python -m unittest discover -s model/tests -t .
+      - run: python -m unittest discover -s agent/tests -t .
+
   backend:
     runs-on: ubuntu-latest
     defaults:

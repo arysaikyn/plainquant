@@ -89,7 +89,11 @@ Deck and video: do not name these products.
 
 Open:
 
-1. **Saudi data.** The source is not verified. Current data work covers A-share, Hong Kong, and US. Decide the demo market.
+1. **Saudi data.** No source is cleared (checked 2026-11-23; every point below is from a search, not from a licence we hold).
+   The Saudi Exchange sells historical data under institutional licences, and its fee pages disagree between versions on the
+   price. An individual line was found only for best-price quotes, with no fundamentals. Redistribution needs a separate
+   licence. Argaam publishes a developer API; its terms and price were not found. Decide the demo market on A-share until one
+   of these is confirmed in writing.
 2. **Sharia standard.** Choose AAOIFI, MSCI Islamic, or a documented simple screen. Name it and show the rules.
 3. **Data licensing.** No raw vendor data in the repo. Check what the demo video may show.
 4. **Demo cut.** One question end to end. Reuse a working component before rebuilding.

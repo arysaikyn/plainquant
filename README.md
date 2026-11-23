@@ -145,7 +145,7 @@ cd .. && python3 -m unittest discover -s model/tests -t .   # engine; contract t
 python3 -m unittest discover -s agent/tests -t .             # agent boundary; needs jsonschema
 ```
 
-`npm run test:e2e` covers the twenty-four screens in English, Arabic and Chinese,
+`npm run test:e2e` covers the twenty-three screens in English, Arabic and Chinese,
 in both themes, at 390px and at 320px, plus `axe` accessibility checks.
 
 The market, news and strategy universe is mock data in `web/src/data/mock.ts`;

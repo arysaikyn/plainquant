@@ -87,8 +87,9 @@ untraced and the UI already marks them so. It is a research assistant, not the e
   runner. It is the one hashing function; move it only if a third caller appears.
 - Market differences (T+1, price limits, lot size, calendar, costs) need a per-market
   adapter in the engine. `costs` in the spec carries only the rates.
-- The Saudi data source is unverified (`product.md`, open question 1). The `sa` market is
-  in the enum and nothing more.
+- No Saudi data source is cleared (`product.md`, open question 1), so there is no
+  `MarketAdapter`: the `sa` market is in the enum and nothing more. The first non-A-share
+  market with real data decides what an adapter must carry.
 
 ## Wiring the web app: the gap, field by field
 
