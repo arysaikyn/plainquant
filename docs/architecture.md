@@ -54,8 +54,15 @@ untraced and the UI already marks them so. It is a research assistant, not the e
 - The grid check is uncalibrated. Its points are hand-set, and on pure-noise synthetic
   data a fundamental spec still collects `volHarvest` from a 71-period regression. Treat
   the score as a prompt to look, not a measurement, until it is tuned against known cases.
-- Factor ids (`debt_ratio`, `low_leverage`) are free strings. The factor library is the
-  next contract.
+- Factor ids are free strings in `spec.schema.json`; the closed vocabulary is the registry
+  in `model/factors.py`. A spec that names an unregistered factor passes the schema and is
+  refused by the engine. Listing the ids in the schema would make that one check, not two,
+  but it would also make the schema a second owner of the factor list.
+- The kernel is pure Python over CSV. That is fine for an index-sized universe (hundreds of
+  names, six years of daily closes); a full A-share snapshot is millions of rows and will
+  need a columnar reader. Add that dependency when a measurement says so, not before.
+- `model/store.py` imports `canonical()` from `model/run.py`, a loader depending on the
+  runner. It is the one hashing function; move it only if a third caller appears.
 - Market differences (T+1, price limits, lot size, calendar, costs) need a per-market
   adapter in the engine. `costs` in the spec carries only the rates.
 - The Saudi data source is unverified (`product.md`, open question 1). The `sa` market is
