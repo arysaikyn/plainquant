@@ -2,22 +2,23 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/arysaikyn/plainquant/model/signals.schema.json",
   "title": "Signals file",
-  "description": "The single data contract between model/ and web/. Generated per run and not committed. Decimals are fractions: 0.12 means 12%. Dates use ISO 8601. max_drawdown is zero or negative. 1.1 adds the optional audit block; a 1.0 producer may omit it.",
+  "description": "The single data contract between model/ and web/. Generated per run and not committed. Decimals are fractions: 0.12 means 12%. Dates use ISO 8601. max_drawdown is zero or negative. 1.2 embeds the spec the run executed and drops the fields it repeated (market, rules, backtest start/end/rebalance): a fact has one owner. 1.2 also makes the audit and the receipt mandatory, so a result cannot be emitted without its grid check. No earlier version is accepted; no consumer read 1.0 or 1.1.",
   "type": "object",
   "required": [
     "schema_version",
     "run_id",
     "generated_at",
     "as_of",
-    "market",
     "query",
-    "rules",
-    "rows"
+    "spec",
+    "receipt",
+    "rows",
+    "audit"
   ],
   "additionalProperties": false,
   "properties": {
     "schema_version": {
-      "enum": ["1.0", "1.1"]
+      "const": "1.2"
     },
     "run_id": {
       "type": "string",
@@ -31,20 +32,32 @@
       "type": "string",
       "format": "date"
     },
-    "market": {
-      "enum": ["cn_a", "hk", "us", "sa"]
-    },
     "query": {
       "type": "string",
       "minLength": 1
     },
-    "rules": {
+    "spec": {
+      "$ref": "spec.schema.json"
+    },
+    "receipt": {
       "type": "object",
-      "required": ["sharia"],
+      "description": "What makes the run reproducible: the same spec on the same data with the same engine gives the same result.",
+      "required": ["spec_hash", "data_version", "engine_version"],
       "additionalProperties": false,
       "properties": {
-        "sharia": {
-          "enum": ["off", "compliant_only"]
+        "spec_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "SHA-256 of the spec in canonical JSON (RFC 8785)."
+        },
+        "data_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The point-in-time data snapshot the engine read."
+        },
+        "engine_version": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },
@@ -92,20 +105,10 @@
     },
     "backtest": {
       "type": "object",
-      "required": ["start", "end", "rebalance", "metrics"],
+      "description": "Present when the spec was run over its period. Dates and rebalance frequency are in the spec.",
+      "required": ["metrics"],
       "additionalProperties": false,
       "properties": {
-        "start": {
-          "type": "string",
-          "format": "date"
-        },
-        "end": {
-          "type": "string",
-          "format": "date"
-        },
-        "rebalance": {
-          "enum": ["D", "W", "M", "Q", "A"]
-        },
         "metrics": {
           "type": "object",
           "required": ["annual_return", "max_drawdown", "sharpe"],
@@ -147,7 +150,8 @@
     },
     "audit": {
       "type": "object",
-      "description": "Checks that do not depend on the ranking. A strategy whose return loads on the size of a move instead of its direction is running a grid, whatever the rules say. Optional so a 1.0 producer stays valid.",
+      "description": "Checks that do not depend on the ranking. A strategy whose return loads on the size of a move instead of its direction is running a grid, whatever the rules say. Required: the engine cannot hand the web a result without it.",
+      "required": ["grid"],
       "additionalProperties": false,
       "properties": {
         "grid": {
@@ -219,23 +223,22 @@
   },
   "allOf": [
     {
+      "description": "The Sharia screen runs before ranking, so under compliant_only a ranked row is compliant. unknown is not compliant.",
       "if": {
-        "required": ["rules"],
         "properties": {
-          "rules": {
-            "properties": {
-              "sharia": {
-                "const": "compliant_only"
-              }
-            }
+          "spec": {
+            "properties": { "sharia": { "const": "compliant_only" } },
+            "required": ["sharia"]
           }
-        }
+        },
+        "required": ["spec"]
       },
       "then": {
         "properties": {
           "rows": {
             "items": {
-              "required": ["sharia"]
+              "required": ["sharia"],
+              "properties": { "sharia": { "const": "compliant" } }
             }
           }
         }
