@@ -606,7 +606,12 @@ html[dir="rtl"] .fade-end {
   .tabbar > div:first-child {
     display: none !important;
   }
+  /* In the rail the orb takes its own space; it floats above the label only on the bottom bar. */
+  .tabbar span:has(> [data-ai-orb]) {
+    height: auto !important;
+  }
   .tabbar [data-ai-orb] {
+    position: static !important;
     transform: none !important;
     top: 0 !important;
     width: 34px !important;

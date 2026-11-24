@@ -22,7 +22,7 @@ SOURCE = ROOT / "docs" / "screenshots" / "raw"
 # Bump when the images change: GitHub serves repo images through a CDN keyed by
 # path, and it kept handing out the previous bytes after a push. A new path is
 # the only reliable cache-bust, and it keeps the filenames readable.
-VERSION = "v2"
+VERSION = "v3"
 TARGET = ROOT / "docs" / "screenshots" / "phones" / VERSION
 
 SCALE = 2  # captures are 2x
@@ -44,6 +44,8 @@ def font(size: int):
         "/System/Library/Fonts/SFNS.ttf",
         "/System/Library/Fonts/Supplemental/Arial.ttf",
         "/Library/Fonts/Arial.ttf",
+        "/usr/share/fonts/truetype/lato/Lato-Medium.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
     ):
         if Path(candidate).exists():
             try:
@@ -168,11 +170,14 @@ def main():
             framed = wrap(screen.convert("RGBA"))
         out = TARGET / f"phone-{path.stem}.png"
         framed.save(out, optimize=True)
-        subprocess.run(
-            ["pngquant", "--quality=70-92", "--speed", "1", "--force", "--output", str(out), str(out)],
-            check=False,
-            capture_output=True,
-        )
+        try:
+            subprocess.run(
+                ["pngquant", "--quality=70-92", "--speed", "1", "--force", "--output", str(out), str(out)],
+                check=False,
+                capture_output=True,
+            )
+        except FileNotFoundError:
+            pass  # pngquant only shrinks the file; the image is complete without it
         print(f"{out.name} {framed.size[0]}x{framed.size[1]} {out.stat().st_size // 1024}KB")
 
 

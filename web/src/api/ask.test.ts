@@ -24,7 +24,7 @@ describe('askEngine', () => {
     expect(JSON.parse(init.body)).toEqual({ question: 'cheap names' })
   })
 
-  it('reads a run: the result is parsed with the same parser as /run, the claims as segments', async () => {
+  it('reads a run: the result is parsed with the same parser as /ai, the claims as segments', async () => {
     reply(200, { result: EXAMPLE, claims: CLAIMS, dropped: 2 })
     const out = await askEngine('q')
     expect(out.kind).toBe('run')

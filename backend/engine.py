@@ -7,7 +7,7 @@
 The language model is reached through one function, `get_provider()`. The API key is read
 from the environment here and nowhere else; it never reaches the browser, a log or a
 response. With no key the path answers 503 and says why. A result is also written to
-SIGNALS_PATH, so `/api/engine/signals` and the `/run` screen show the latest run.
+SIGNALS_PATH, so `/api/engine/signals` and the `/ai` screen show the latest run.
 """
 
 from __future__ import annotations
