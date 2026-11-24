@@ -94,6 +94,9 @@ Open:
    price. An individual line was found only for best-price quotes, with no fundamentals. Redistribution needs a separate
    licence. Argaam publishes a developer API; its terms and price were not found. Decide the demo market on A-share until one
    of these is confirmed in writing.
+   Decision (2026-11-23): until a licence is confirmed in writing, the demo runs on A-share
+   with synthetic or mock data, and every screen says so. No Saudi result is shown, because
+   the engine refuses the `sa` market (`docs/architecture.md`).
 2. **Sharia standard.** Choose AAOIFI, MSCI Islamic, or a documented simple screen. Name it and show the rules.
 3. **Data licensing.** No raw vendor data in the repo. Check what the demo video may show.
 4. **Demo cut.** One question end to end. Reuse a working component before rebuilding.

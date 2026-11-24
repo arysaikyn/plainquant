@@ -13,6 +13,7 @@ from pathlib import Path
 
 from . import audit
 from .backtest import run_backtest
+from . import markets
 from .factors import factor
 from .screen import sharia_at
 from .snapshot import Snapshot
@@ -64,6 +65,9 @@ def run(spec: dict, snap: Snapshot, query: str, generated_at: str) -> dict:
         raise ValueError(f"spec has fields the contract does not define: {', '.join(undefined)}")
     if snap.universe != spec["universe"]:
         raise ValueError(f"snapshot carries {snap.universe!r}, spec asks for {spec['universe']!r}")
+    if snap.market != spec["market"]:
+        raise ValueError(f"snapshot carries market {snap.market!r}, spec asks for {spec['market']!r}")
+    notes = [markets.warning(spec["market"])]  # raises on a market with no registered rules
     families = _families(spec)  # raises on an unregistered factor, before any work
     bt = run_backtest(spec, snap)
 
@@ -110,5 +114,6 @@ def run(spec: dict, snap: Snapshot, query: str, generated_at: str) -> dict:
         "audit": {"grid": audit.grid_block(report)},
     }
     if len(held) < spec["top_k"]:
-        result["warnings"] = [f"only {len(held)} of {spec['top_k']} names passed the screen on {bt['as_of']}"]
+        notes.append(f"only {len(held)} of {spec['top_k']} names passed the screen on {bt['as_of']}")
+    result["warnings"] = notes
     return result

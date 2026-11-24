@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 class Snapshot:
     version: str
     universe: str
+    market: str  # the venue the data comes from: cn_a, hk, us or sa
     dates: list[str]  # trading days, ISO, ascending
     prices: dict[str, dict[str, float]]  # symbol -> date -> close
     # symbol -> [(announce_date, {fact key -> value or None})], ascending by date

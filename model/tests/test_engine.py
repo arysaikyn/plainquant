@@ -169,6 +169,24 @@ class Run(unittest.TestCase):
         with self.assertRaises(ValueError):
             run(spec(rank=[{"factor": "vibes", "direction": "desc"}]), self.snap, "q", NOW)
 
+    def test_a_market_with_no_registered_rules_is_refused(self):
+        snap = make_snapshot(market="sa")
+        with self.assertRaisesRegex(ValueError, "no market rules are registered for 'sa'"):
+            run(spec(market="sa"), snap, "q", NOW)
+
+    def test_a_snapshot_from_another_market_is_refused(self):
+        with self.assertRaisesRegex(ValueError, "snapshot carries market 'cn_a'"):
+            run(spec(market="us"), self.snap, "q", NOW)
+
+    def test_every_result_says_what_the_market_model_leaves_out(self):
+        warnings = run(spec(), self.snap, "q", NOW)["warnings"]
+        self.assertIn("Not modelled for cn_a: T+1 settlement, daily price limits, 100-share board lots.", warnings[0])
+
+    def test_a_short_book_adds_its_own_note_after_the_market_note(self):
+        warnings = run(spec(sharia="compliant_only", top_k=40), self.snap, "q", NOW)["warnings"]
+        self.assertTrue(warnings[0].startswith("Not modelled"))
+        self.assertTrue(any(w.startswith("only ") for w in warnings[1:]))
+
     def test_a_snapshot_for_another_universe_is_refused(self):
         with self.assertRaises(ValueError):
             run(spec(universe="csi300"), self.snap, "q", NOW)

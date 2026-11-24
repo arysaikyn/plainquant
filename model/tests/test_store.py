@@ -29,6 +29,20 @@ class Store(unittest.TestCase):
         a["receipt"]["data_version"] = b["receipt"]["data_version"]
         self.assertEqual(a, b)  # float repr round-trips, so nothing moved
 
+    def test_the_market_survives_the_round_trip_and_is_part_of_the_version(self):
+        self.assertEqual(store.load(self.dir).market, "cn_a")
+        other = store.write(make_snapshot(n=12, market="us"), Path(self.tmp.name) / "us")
+        self.assertNotEqual(other, self.version)
+
+    def test_an_older_manifest_format_is_refused(self):
+        self._retouch("dates.csv", lambda t: t)  # keep the files consistent with the manifest
+        path = self.dir / "manifest.json"
+        manifest = json.loads(path.read_text())
+        manifest["format"] = 1
+        path.write_text(json.dumps(manifest))
+        with self.assertRaisesRegex(ValueError, "unsupported snapshot format"):
+            store.load(self.dir)
+
     def test_the_same_content_in_another_directory_has_the_same_version(self):
         self.assertEqual(store.write(self.snap, Path(self.tmp.name) / "other"), self.version)
 

@@ -42,7 +42,7 @@ def weekdays(start: date, end: date) -> list[str]:
     return out
 
 
-def make_snapshot(seed: int = 1, n: int = 40, flat: bool = False) -> Snapshot:
+def make_snapshot(seed: int = 1, n: int = 40, flat: bool = False, market: str = "cn_a") -> Snapshot:
     rng = random.Random(seed)
     dates = weekdays(date(2019, 1, 1), date(2024, 12, 31))
     prices, facts, membership, names = {}, {}, {}, {}
@@ -75,6 +75,7 @@ def make_snapshot(seed: int = 1, n: int = 40, flat: bool = False) -> Snapshot:
     return Snapshot(
         version=f"synthetic-seed{seed}",
         universe="synthetic",
+        market=market,
         dates=dates,
         prices=prices,
         facts=facts,

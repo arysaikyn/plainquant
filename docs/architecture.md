@@ -74,8 +74,10 @@ untraced and the UI already marks them so. It is a research assistant, not the e
   belongs in `backend/pyproject.toml` when the backend imports it. Nothing in `backend/` or
   `web/` calls `agent/` yet.
 - `agent/spec.py` holds the defaults for a silent question (fee 0.0015, slippage 0.005,
-  top 10) and the three refusal names, which `web/src/data/costs.ts` and `lib/refusal.ts`
-  also hold. Delete the web copies when web reads a Result.
+  top 10) and the three refusal names. `web/src` holds a second copy of the fee and
+  slippage, of the refusal names and of the AAOIFI caps. `model/tests/test_shared_facts.py`
+  reads those TypeScript files and fails the engine job when a value differs. The copies go
+  when the screens that use them are rebuilt on engine results.
 - Factor ids are free strings in `spec.schema.json`; the closed vocabulary is the registry
   in `model/factors.py`. A spec that names an unregistered factor passes the schema and is
   refused by the engine. Listing the ids in the schema would make that one check, not two,
@@ -85,11 +87,17 @@ untraced and the UI already marks them so. It is a research assistant, not the e
   need a columnar reader. Add that dependency when a measurement says so, not before.
 - `model/store.py` imports `canonical()` from `model/run.py`, a loader depending on the
   runner. It is the one hashing function; move it only if a third caller appears.
-- Market differences (T+1, price limits, lot size, calendar, costs) need a per-market
-  adapter in the engine. `costs` in the spec carries only the rates.
-- No Saudi data source is cleared (`product.md`, open question 1), so there is no
-  `MarketAdapter`: the `sa` market is in the enum and nothing more. The first non-A-share
-  market with real data decides what an adapter must carry.
+- Market rules are one table, `model/markets.py`. It registers `cn_a` only, with the three
+  frictions the engine does not model: T+1 settlement, daily price limits and 100-share
+  board lots (Shanghai Stock Exchange rule pages, checked 2026-11-23). The limits differ by
+  board and the sources disagree on some boards, so no percentage is written. A Snapshot
+  carries its market; the engine refuses a spec whose market differs from the snapshot's,
+  and refuses a market with no entry. Every Result starts its `warnings` with the list of
+  what is not modelled. `sa`, `hk` and `us` stay in the schema enum and are refused until
+  someone writes their frictions and holds data for them.
+- The warning text is English whatever the app language. A coded warning would fix that and
+  would change the contract; it waits for a second warning that the UI must translate.
+- No Saudi data source is cleared (`product.md`, open question 1), so nothing runs for `sa`.
 
 ## Wiring the web app
 
