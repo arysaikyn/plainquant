@@ -143,6 +143,7 @@ npm run build
 cd ../backend && uv run python -m unittest discover -s tests
 cd .. && python3 -m unittest discover -s model/tests -t .   # engine; contract tests need jsonschema
 python3 -m unittest discover -s agent/tests -t .             # agent boundary; needs jsonschema
+python3 -m unittest discover -s data/tests -t .              # snapshot builder, against a fake service
 ```
 
 `npm run test:e2e` covers the twenty-four screens in English, Arabic and Chinese,

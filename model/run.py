@@ -68,6 +68,7 @@ def run(spec: dict, snap: Snapshot, query: str, generated_at: str) -> dict:
     if snap.market != spec["market"]:
         raise ValueError(f"snapshot carries market {snap.market!r}, spec asks for {spec['market']!r}")
     notes = [markets.warning(spec["market"])]  # raises on a market with no registered rules
+    notes += [f"Data: {text}" for text in snap.limitations]
     families = _families(spec)  # raises on an unregistered factor, before any work
     bt = run_backtest(spec, snap)
 

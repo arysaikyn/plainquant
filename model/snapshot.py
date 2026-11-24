@@ -26,6 +26,8 @@ class Snapshot:
     membership: dict[str, tuple[str, str | None]]
     names: dict[str, str] = field(default_factory=dict)
     sectors: dict[str, str] = field(default_factory=dict)
+    # Known defects of this data, in plain sentences. Every Result run on it repeats them.
+    limitations: list[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         self._price_dates = {s: sorted(p) for s, p in self.prices.items()}

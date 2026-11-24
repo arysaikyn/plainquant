@@ -99,7 +99,7 @@ Open:
    the code follows"). The engine refuses the `sa` market (`docs/architecture.md`), so no
    Saudi engine result exists. The Saudi quotes on the other screens are mock data.
 2. **Sharia standard.** Choose AAOIFI, MSCI Islamic, or a documented simple screen. Name it and show the rules.
-3. **Data licensing.** No raw vendor data in the repo. Check what the demo video may show.
+3. **Data licensing.** No raw vendor data in the repo. Check what the demo video may show. The A-share builder reads Baostock; its terms of use were not found, so treat its data as for local research only until they are.
 4. **Demo cut.** One question end to end. Reuse a working component before rebuilding.
 
 Demo contract: a question -> a strategy spec -> a backtest with dates, costs, and one failure metric -> an explanation that names the rule, the result, and one limit. No number the engine did not compute.

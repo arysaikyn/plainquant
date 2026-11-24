@@ -34,6 +34,14 @@ class Store(unittest.TestCase):
         other = store.write(make_snapshot(n=12, market="us"), Path(self.tmp.name) / "us")
         self.assertNotEqual(other, self.version)
 
+    def test_the_known_limits_of_the_data_survive_and_change_the_version(self):
+        s = make_snapshot(n=12)
+        s.limitations = ["Universe is today's list."]
+        version = store.write(s, Path(self.tmp.name) / "lim")
+        self.assertNotEqual(version, self.version)
+        self.assertEqual(store.load(Path(self.tmp.name) / "lim").limitations, ["Universe is today's list."])
+        self.assertEqual(store.load(self.dir).limitations, [])
+
     def test_an_older_manifest_format_is_refused(self):
         self._retouch("dates.csv", lambda t: t)  # keep the files consistent with the manifest
         path = self.dir / "manifest.json"

@@ -55,8 +55,10 @@ untraced and the UI already marks them so. It is a research assistant, not the e
 ## Not done yet
 
 - **The engine runs on synthetic data only.** `model/` writes a valid Result from a
-  seeded fixture. No real data source is chosen: the candidates (AKShare, Tushare) have
-  unverified terms and no verified announcement dates, so a vendor adapter waits for that.
+  seeded fixture. `data/baostock_source.py` can fill a snapshot with real A-share data, but
+  it has only run against a fake service: it has not been run on live data, and the field
+  names it reads are from Baostock's documentation, not checked against a response (see
+  "Real data" below).
   Only `/run` in `web/` reads a Result.
 - `web/src/lib/ledger.ts`, `lib/gridcheck.ts` and `data/shariaCoverage.ts` hold a second
   copy of what `model/audit.py` and `model/sharia.py` now compute. They go from `web/`
@@ -98,6 +100,28 @@ untraced and the UI already marks them so. It is a research assistant, not the e
 - The warning text is English whatever the app language. A coded warning would fix that and
   would change the contract; it waits for a second warning that the UI must translate.
 - No Saudi data source is cleared (`product.md`, open question 1), so nothing runs for `sa`.
+
+## Real data
+
+`data/baostock_source.py` builds a snapshot from Baostock, a free A-share service, into
+`data/raw/` (git ignores it). The module is stdlib plus the `baostock` package, which is
+not a dependency of this repo. Run it with a package you have read:
+
+    PYTHONPATH=<dir holding baostock> python3 -m data.baostock_source --out data/raw/csi300 --limit 20
+    python3 -m model SPEC.json data/raw/csi300 --query "..." -o model/signals.json
+
+What it does about point in time: a report becomes visible on its publication date, not its
+period end; each fact row repeats every value known that day, because the engine reads the
+latest row only. A mutation test (publish on the period end) makes the suite fail.
+
+What it cannot fix is written into the snapshot as `limitations`, and every Result run on it
+starts its `warnings` with them: the universe is today's CSI 300 list (survivorship bias);
+`debt_ratio` is liabilities over assets, not the AAOIFI ratio; the AAOIFI inputs are not
+published, so every name is Sharia unknown and `compliant_only` returns nothing; the
+dividend yield only changes on an announcement.
+
+Not confirmed: that Baostock's field names match the code, and whether its data may be
+shown or redistributed. A missing field stops the run and lists the fields the server sent.
 
 ## Wiring the web app
 

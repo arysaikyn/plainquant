@@ -182,6 +182,13 @@ class Run(unittest.TestCase):
         warnings = run(spec(), self.snap, "q", NOW)["warnings"]
         self.assertIn("Not modelled for cn_a: T+1 settlement, daily price limits, 100-share board lots.", warnings[0])
 
+    def test_the_known_limits_of_the_data_are_repeated_in_every_result(self):
+        snap = make_snapshot()
+        snap.limitations = ["Universe is today's list, so names that left it are missing."]
+        warnings = run(spec(), snap, "q", NOW)["warnings"]
+        self.assertIn("Data: Universe is today's list, so names that left it are missing.", warnings)
+        self.assertTrue(warnings[0].startswith("Not modelled"))
+
     def test_a_short_book_adds_its_own_note_after_the_market_note(self):
         warnings = run(spec(sharia="compliant_only", top_k=40), self.snap, "q", NOW)["warnings"]
         self.assertTrue(warnings[0].startswith("Not modelled"))

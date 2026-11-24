@@ -4,7 +4,7 @@ The format is the contract between a data adapter and the engine; the adapter th
 fills it for a given vendor lives outside model/. Raw data stays out of git: put
 snapshot directories under `data/raw/`.
 
-    manifest.json   {"format": 2, "universe": ..., "market": ..., "files": {name: sha256}}
+    manifest.json   {"format": 2, "universe": ..., "market": ..., "limitations": [...], "files": {name: sha256}}
     dates.csv       date
     prices.csv      symbol,date,close
     facts.csv       symbol,announce_date,key,value        (empty value = not published)
@@ -79,6 +79,7 @@ def write(snap: Snapshot, directory: str | Path) -> str:
         "format": FORMAT,
         "universe": snap.universe,
         "market": snap.market,
+        "limitations": snap.limitations,
         "files": {f: hashlib.sha256((out / f).read_bytes()).hexdigest() for f in FILES},
     }
     (out / "manifest.json").write_text(canonical(manifest) + "\n", encoding="utf-8")
@@ -125,6 +126,7 @@ def load(directory: str | Path) -> Snapshot:
         version=version_of(manifest),
         universe=manifest["universe"],
         market=manifest["market"],
+        limitations=manifest.get("limitations", []),
         dates=dates,
         prices=prices,
         facts=facts,
