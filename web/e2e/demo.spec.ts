@@ -19,7 +19,7 @@ test('demo answers without touching the AI backend', async ({ page }) => {
     await route.abort()
   })
   await primeDemo(page)
-  await page.goto('/ai')
+  await page.goto('/ai/chat')
   await expect(page.getByText('Demo mode · pre-recorded replies')).toBeVisible()
 
   const box = page.getByRole('textbox', { name: /Try:/ })

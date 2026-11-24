@@ -103,7 +103,7 @@ export default function RunsPage() {
   const declinedCount = Object.values(receipts).reduce((sum, list) => sum + list.length, 0)
 
   return (
-    <Screen title={s('title')} leading={<BackButton fallback="/ai" />}>
+    <Screen title={s('title')} leading={<BackButton fallback="/ai/chat" />}>
       <div className="pt-4">
         <p className="text-md leading-relaxed text-muted">{s('lead')}</p>
 
@@ -228,7 +228,7 @@ export default function RunsPage() {
                     <div className="flex items-stretch">
                       <button
                         type="button"
-                        onClick={() => navigate(`/ai?session=${encodeURIComponent(session.session_id)}`)}
+                        onClick={() => navigate(`/ai/chat?session=${encodeURIComponent(session.session_id)}`)}
                         className="min-h-14 min-w-0 flex-1 py-3 pe-3 text-start transition-colors hover:bg-fg/5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-fg"
                       >
                         <span className="block truncate text-md font-medium">
@@ -291,7 +291,7 @@ export default function RunsPage() {
         )}
 
         <Link
-          to="/ai?new=1"
+          to="/ai/chat?new=1"
           className="mt-6 flex min-h-12 w-full items-center justify-center rounded-full bg-solid px-5 text-md font-medium text-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg active:opacity-80"
         >
           {sessions.length === 0 ? s('askFirst') : s('newQuestion')}

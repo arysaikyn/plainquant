@@ -22,7 +22,7 @@ export function LongPressLink({ to, prompt, chips, className, children }: Props)
   const navigate = useNavigate()
   const handlers = useLongPress(() => {
     setIntake(prompt, chips)
-    navigate('/ai')
+    navigate('/ai/chat')
   })
 
   return (

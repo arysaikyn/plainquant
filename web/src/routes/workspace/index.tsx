@@ -146,7 +146,7 @@ function AskEmpty({
           type="button"
           onClick={() => {
             setIntake(prompt, [])
-            navigate('/ai')
+            navigate('/ai/chat')
           }}
           className="flex min-h-11 items-center rounded-full bg-solid px-4 text-xs font-medium text-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg active:opacity-80"
         >
@@ -236,7 +236,7 @@ function RunsPanel({ s, lang }: { s: S; lang: 'zh' | 'en' | 'ar' }) {
             s={s}
             onClick={() => {
               setIntake(s('runPrompt').replace('{id}', run.run_id), [])
-              navigate('/ai')
+              navigate('/ai/chat')
             }}
           />
         </Row>
@@ -525,7 +525,7 @@ function PaperPanel({ s, lang }: { s: S; lang: 'zh' | 'en' | 'ar' }) {
             s={s}
             onClick={() => {
               setIntake(s('paperPrompt').replace('{id}', account.label), [])
-              navigate('/ai')
+              navigate('/ai/chat')
             }}
           />
           <AccountSnapshots account={account} s={s} lang={lang} />
@@ -587,7 +587,7 @@ function PortfolioPanel({ s, lang }: { s: S; lang: 'zh' | 'en' | 'ar' }) {
         s={s}
         onClick={() => {
           setIntake(s('portfolioPrompt'), [])
-          navigate('/ai')
+          navigate('/ai/chat')
         }}
       />
     </div>
@@ -616,7 +616,7 @@ function AlphasPanel({ s }: { s: S }) {
               s={s}
               onClick={() => {
                 setIntake(s('alphaPrompt').replace('{id}', alpha.id), [])
-                navigate('/ai')
+                navigate('/ai/chat')
               }}
             />
           </Row>
@@ -842,7 +842,7 @@ function ScheduledPanel({ s, lang }: { s: S; lang: 'zh' | 'en' | 'ar' }) {
                 s={s}
                 onClick={() => {
                   setIntake(s('scheduledPrompt').replace('{id}', job.title || job.id), [])
-                  navigate('/ai')
+                  navigate('/ai/chat')
                 }}
               />
             </Row>
@@ -912,7 +912,7 @@ function Tools({ s, navigate }: { s: S; navigate: (path: string) => void }) {
 
   function prefill(prompt: string) {
     setIntake(prompt, [])
-    navigate('/ai')
+    navigate('/ai/chat')
   }
 
   return (
@@ -1041,7 +1041,7 @@ export default function WorkspacePage() {
   }, [tab])
 
   return (
-    <Screen title={s('title')} leading={<BackButton fallback="/ai" />}>
+    <Screen title={s('title')} leading={<BackButton fallback="/ai/chat" />}>
       <p className="mt-3 text-sm leading-relaxed text-muted">{s('subtitle')}</p>
 
       {mode === 'demo' && (

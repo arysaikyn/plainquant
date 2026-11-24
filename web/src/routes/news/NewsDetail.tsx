@@ -152,7 +152,7 @@ export default function NewsDetail() {
           type="button"
           onClick={() => {
             setIntake(`${s('askAi')} — ${item.title[lang]}`, [{ kind: 'news', id: item.id }])
-            navigate('/ai')
+            navigate('/ai/chat')
           }}
           className="mt-8 flex min-h-12 w-full items-center justify-center rounded-full bg-solid px-5 text-md font-medium text-bg transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg active:opacity-80"
         >

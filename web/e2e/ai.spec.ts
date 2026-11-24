@@ -24,7 +24,7 @@ async function ask(page: Page, text: string) {
 test('agent stream renders tools, markdown and the run card', async ({ page }) => {
   await prime(page)
   await resetSession(page)
-  await page.goto('/ai')
+  await page.goto('/ai/chat')
   await expect(page.getByText('Local agent connected')).toBeVisible()
   await ask(page, 'Backtest AAPL for 2024')
 
@@ -54,13 +54,13 @@ test('history lists server sessions and opens one', async ({ page }) => {
   await page.goto('/runs')
   await expect(page.getByText('History session').first()).toBeVisible()
   await page.getByText('History session').first().click()
-  await expect(page).toHaveURL(/\/ai\?session=mock-session/)
+  await expect(page).toHaveURL(/\/ai\/chat\?session=mock-session/)
 })
 
 test('stop cancels and leaves a stopped marker', async ({ page }) => {
   await prime(page)
   await resetSession(page)
-  await page.goto('/ai')
+  await page.goto('/ai/chat')
   await ask(page, 'slow test run')
   const stop = page.getByRole('button', { name: 'Stop' })
   await expect(stop).toBeVisible({ timeout: 10_000 })
@@ -76,10 +76,10 @@ test('new chat clears the transcript and the URL session', async ({ page }) => {
   await page.request.post('/api/ai/sessions/mock-session/messages', {
     data: { content: 'Backtest AAPL for 2024' },
   })
-  await page.goto('/ai?session=mock-session')
+  await page.goto('/ai/chat?session=mock-session')
   await expect(page.getByText('Backtest AAPL for 2024', { exact: true })).toBeVisible({ timeout: 15_000 })
   await page.getByRole('button', { name: 'New chat' }).click()
-  await expect(page).toHaveURL(/\/ai$/)
+  await expect(page).toHaveURL(/\/ai\/chat$/)
   await expect(page.getByText('Backtest AAPL for 2024', { exact: true })).toBeHidden()
   await expect(page.getByText('Ask in plain words. See what fits and why.')).toBeVisible()
 })
@@ -87,7 +87,7 @@ test('new chat clears the transcript and the URL session', async ({ page }) => {
 test('a reload during a run resumes and keeps the answer', async ({ page }) => {
   await prime(page)
   await resetSession(page)
-  await page.goto('/ai')
+  await page.goto('/ai/chat')
   // A prior assistant turn makes the polling baseline non-zero; the resumed
   // turn must not be mistaken for that older answer.
   await ask(page, 'first quick turn')

@@ -14,7 +14,7 @@ import type { Page } from '@playwright/test'
  * 3. no rendered text below 11px (chart axis ticks are SVG and exempt).
  */
 
-const DENSE = ['/', '/m/2222', '/news', '/strategy/low-debt-value', '/screener', '/strategy', '/run']
+const DENSE = ['/', '/m/2222', '/news', '/strategy/low-debt-value', '/screener', '/strategy', '/ai']
 
 async function prime(page: Page, lang: string) {
   await page.addInitScript((l) => {

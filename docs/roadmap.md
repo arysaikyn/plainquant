@@ -28,7 +28,7 @@ nowhere else.
 
 | # | Phase | Status | Exit criterion |
 |---|---|---|---|
-| 1 | Real data | partly done | A real snapshot passes `data.check` and `/run` shows a real result with its limits. Decided 2026-11-24: the demo is a 20-name real sample, labelled as a sample in every Result. The full fetch failed twice (killed for memory; then the source refused connections) and is not run; the builder now resumes from `OUT.partial`. |
+| 1 | Real data | partly done | A real snapshot passes `data.check` and `/ai` shows a real result with its limits. Decided 2026-11-24: the demo is a 20-name real sample, labelled as a sample in every Result. The full fetch failed twice (killed for memory; then the source refused connections) and is not run; the builder now resumes from `OUT.partial`. |
 | 2 | Engine is trustworthy on real data | in progress | Fill lag, tradability and costs are modelled and tested; the audit false-positive rate is a number; run time is a number. |
 | 3 | Sharia that works | not started | `compliant_only` returns a non-empty real result that matches a public list on at least 30 names. |
 | 4 | Saudi Arabia | blocked | A real `sa` run. Blocked on a data licence. |
@@ -47,7 +47,7 @@ nowhere else.
 
 **4 Saudi Arabia.** Ask the Saudi Exchange and Argaam in writing about licence terms. Check the market rules from two sources each (price limit, settlement, lot, trading days, Ramadan hours). Add `sa` to `model/markets.py`. Write the adapter. Run one spec on `cn_a` and on `sa`.
 
-**5 Agent.** Done: `python3 -m model.verify` (reproduce a Result from its receipt), a 36-question eval in three languages, `POST /api/engine/ask` (question, spec, run, claims), `jsonschema` declared, `complete()` for the Anthropic API, the ask box and the explanation on `/run`, all tested with a scripted model. To do: run the eval with a key, regenerate `uv.lock`, cache runs only if a measurement asks for it. The eval has 36 questions, 12 of them refusals and 2 with injected stop-loss or take-profit; it has not been run on a model. Proposed targets: valid specs 95%, correct 80%, refusals 100%. Add a reproduce control on `/run`; archive snapshots by data version.
+**5 Agent.** Done: `python3 -m model.verify` (reproduce a Result from its receipt), a 36-question eval in three languages, `POST /api/engine/ask` (question, spec, run, claims), `jsonschema` declared, `complete()` for the Anthropic API, the ask box and the explanation on `/ai`, all tested with a scripted model. To do: run the eval with a key, regenerate `uv.lock`, cache runs only if a measurement asks for it. The eval has 36 questions, 12 of them refusals and 2 with injected stop-loss or take-profit; it has not been run on a model. Proposed targets: valid specs 95%, correct 80%, refusals 100%. Add a reproduce control on `/ai`; archive snapshots by data version.
 
 **6 Screens.** If the user chooses a rebuild: add the exclusion funnel, the gross curve, the trial count and the Sharia check detail to the Result; store saved runs; rebuild `StrategyDetail`, the Screener, compare and report on results; delete the TypeScript copies and `test_shared_facts.py`; derive the e2e route lists from `screens.ts`.
 
@@ -61,7 +61,7 @@ nowhere else.
 
 ## Stop points
 
-- S1: real data in `/run`.
+- S1: real data in `/ai`.
 - S2: the main line works end to end.
 - S3: Sharia on real inputs.
 - S4: phases 6 and 7 done.

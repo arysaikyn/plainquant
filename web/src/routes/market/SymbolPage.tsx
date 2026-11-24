@@ -244,7 +244,7 @@ export default function SymbolPage() {
             type="button"
             onClick={() => {
               setIntake(`${s('askAbout')} ${quote.name[lang]}`, [{ kind: 'quote', symbol: quote.symbol }])
-              navigate('/ai')
+              navigate('/ai/chat')
             }}
             className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line px-3 text-xs text-muted transition-colors hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg"
           >

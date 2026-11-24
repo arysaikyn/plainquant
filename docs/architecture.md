@@ -68,7 +68,7 @@ untraced and the UI already marks them so. It is a research assistant, not the e
   it has only run against a fake service: it has not been run on live data, and the field
   names it reads are from Baostock's documentation, not checked against a response (see
   "Real data" below).
-  Only `/run` in `web/` reads a Result.
+  Only `/ai` in `web/` reads a Result.
 - `web/src/lib/ledger.ts`, `lib/gridcheck.ts` and `data/shariaCoverage.ts` hold a second
   copy of what `model/audit.py` and `model/sharia.py` now compute. They go from `web/`
   when the strategy screen and the screener stop using them. `audit.py` agreed with the
@@ -180,7 +180,7 @@ question goes to `agent/spec.py`, which has the model write a spec (validated ag
 schema, the factor registry and the snapshot's universe and market; two repairs; or a
 refusal for an order, a guarantee or a pick); the engine runs it on the snapshot in
 `SNAPSHOT_DIR` (default `data/raw/csi300`); the result is written to `SIGNALS_PATH`, so the
-`/run` screen and `GET /api/engine/signals` show the latest run; `agent/claims.py` has the
+`/ai` screen and `GET /api/engine/signals` show the latest run; `agent/claims.py` has the
 model explain it as sentences with slots.
 
 - Answers: 200 with `{result, claims, dropped}`, or `{refusal}`; 422 with `{problems}` when
@@ -192,7 +192,7 @@ model explain it as sentences with slots.
   cheap choice the eval has not measured.
 - One run at a time (a lock); the run is off the event loop. If only the explanation fails,
   the run is kept and `claims_error` says so.
-- On `/run` a question box sends the question and replaces the screen with the run. The
+- On `/ai` a question box sends the question and replaces the screen with the run. The
   explanation is segments; the screen formats each value with the number formatter, so a
   number the reader sees is the engine's. It sits after the grid check and before the result.
 - Not built: caching runs on spec hash and data version (a run takes about a second, so it
@@ -200,9 +200,9 @@ model explain it as sentences with slots.
 
 ## Wiring the web app
 
-`/run` renders a Result as it is: the question, the grid check first, the rules as
+`/ai` renders a Result as it is: the question, the grid check first, the rules as
 sentences, metrics, curve, holdings and the receipt. It is one row in `screens.ts` plus
-`routes/run/`, reached from the strategy list. The data path is `GET /api/engine/signals`
+`routes/run/`, it is the AI tab; the earlier general chat is `/ai/chat`, labelled as unchecked. The data path is `GET /api/engine/signals`
 (`backend/app.py` serves the latest `model/signals.json`, read-only, one fixed path) into a
 strict parser, `web/src/api/signals.ts`, whose tests read `model/signals.example.json`, so
 the parser and the schema share one example.
