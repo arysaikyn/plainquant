@@ -1,11 +1,13 @@
 import unittest
 
-from ..backtest import fill_date, marks_of, run_backtest
+from .. import markets
+from ..backtest import fill_date, marks_of, run_backtest, tradable_book
 from ..factors import factor
 from ..run import run, spec_hash
 from ..screen import screen, select
 from ..snapshot import Snapshot
 import dataclasses
+from unittest import mock
 from .fixtures import make_snapshot, spec
 
 NOW = "2026-01-01T00:00:00Z"
@@ -177,6 +179,85 @@ class Backtest(unittest.TestCase):
     def test_a_period_with_one_date_is_refused(self):
         with self.assertRaises(ValueError):
             run_backtest(spec(period={"start": "2020-01-01", "end": "2020-01-01"}), make_snapshot(n=2))
+
+
+class Tradability(unittest.TestCase):
+    """A name with no price on the fill day cannot be traded that day."""
+
+    def setUp(self):
+        self.snap = make_snapshot(n=6)
+        self.day = "2021-03-03"
+
+    def suspend(self, *names):
+        for n in names:
+            del self.snap.prices[n][self.day]
+        self.snap.__post_init__()
+
+    def test_a_suspended_name_is_not_bought_and_its_slot_stays_empty(self):
+        self.suspend("S002")
+        self.assertEqual(tradable_book(self.snap, [], ["S001", "S002", "S003"], self.day), ["S001", "S003"])
+
+    def test_a_suspended_name_that_should_be_sold_is_kept(self):
+        self.suspend("S001")
+        self.assertEqual(tradable_book(self.snap, ["S001", "S002"], ["S002", "S003"], self.day), ["S002", "S003", "S001"])
+
+    def test_a_suspended_name_already_held_and_still_wanted_stays_once(self):
+        self.suspend("S001")
+        self.assertEqual(tradable_book(self.snap, ["S001"], ["S001", "S002"], self.day), ["S001", "S002"])
+
+    def test_when_nothing_is_suspended_the_book_is_the_target(self):
+        self.assertEqual(tradable_book(self.snap, ["S001"], ["S002", "S003"], self.day), ["S002", "S003"])
+
+    def test_the_best_name_suspended_on_the_first_fill_day_is_not_in_the_first_book(self):
+        snap = make_snapshot()
+        s = spec(top_k=3, n_drop=0, filters=[], rank=[{"factor": "debt_ratio", "direction": "asc"}])
+        marks = marks_of(snap, "M", s["period"]["start"], s["period"]["end"])
+        best = screen(s, snap, marks[0])[0]["symbol"]
+        del snap.prices[best][fill_date(snap, marks[0])]
+        snap.__post_init__()
+        books = run_backtest(s, snap)["books"]
+        self.assertNotIn(best, books[0])
+        self.assertEqual(len(books[0]), 2)
+
+
+class SellTax(unittest.TestCase):
+    def test_the_rate_changes_on_the_day_the_duty_was_halved(self):
+        self.assertEqual(markets.sell_tax_rate("cn_a", "2023-08-27"), 0.001)
+        self.assertEqual(markets.sell_tax_rate("cn_a", "2023-08-28"), 0.0005)
+        self.assertEqual(markets.sell_tax_rate("cn_a", "2019-01-02"), 0.001)
+
+    def test_an_unregistered_market_has_no_rate(self):
+        with self.assertRaisesRegex(ValueError, "no market rules are registered"):
+            markets.sell_tax_rate("sa", "2024-01-02")
+
+    def test_only_the_sale_pays_it(self):
+        # Flat prices, so a period's return is exactly minus its costs. The book swaps 2 of 10
+        # names each period, so 20% of the book is sold, and a buy-only period pays no duty.
+        snap = make_snapshot(flat=True)
+        s = spec(n_drop=2, filters=[], period={"start": "2020-01-01", "end": "2020-12-31"})
+        taxed = run_backtest(s, snap)["curve"]
+        free_rules = markets.MarketRules(frictions=markets.MARKETS["cn_a"].frictions, sell_tax=(("0000-01-01", 0.0),))
+        with mock.patch.dict(markets.MARKETS, {"cn_a": free_rules}):
+            free = run_backtest(s, snap)["curve"]
+        self.assertEqual(taxed[1], free[1])  # the first period only buys
+        step = lambda c, i: c[i + 1] / c[i] - 1
+        self.assertAlmostEqual(step(taxed, 1) - step(free, 1), -0.2 * 0.001, places=12)
+
+    def test_the_halved_rate_applies_to_a_sale_after_the_change(self):
+        snap = make_snapshot(flat=True)
+        s = spec(n_drop=2, filters=[], period={"start": "2023-10-02", "end": "2023-12-29"})
+        taxed = run_backtest(s, snap)["curve"]
+        free_rules = markets.MarketRules(frictions=markets.MARKETS["cn_a"].frictions, sell_tax=(("0000-01-01", 0.0),))
+        with mock.patch.dict(markets.MARKETS, {"cn_a": free_rules}):
+            free = run_backtest(s, snap)["curve"]
+        step = lambda c, i: c[i + 1] / c[i] - 1
+        self.assertAlmostEqual(step(taxed, 1) - step(free, 1), -0.2 * 0.0005, places=12)
+
+    def test_the_market_note_says_stamp_duty_and_suspension_are_modelled(self):
+        text = markets.warning("cn_a")
+        self.assertTrue(text.startswith("Not modelled for cn_a: T+1 settlement, daily price limits, 100-share board lots."))
+        self.assertIn("suspended", text)
+        self.assertIn("Stamp duty on sales", text)
 
 
 class Run(unittest.TestCase):

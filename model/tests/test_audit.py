@@ -70,6 +70,41 @@ class Persistence(unittest.TestCase):
         self.assertEqual(p["stop"], "adds")
 
 
+class Significance(unittest.TestCase):
+    """A measured finding counts only when it is not noise."""
+
+    bench = curve_of(CHOP)
+
+    def test_the_volatility_coefficient_carries_a_t_statistic(self):
+        harvest = exposure_of(curve_of([abs(r) * 0.5 - 0.0001 for r in CHOP]), self.bench)
+        directional = exposure_of(curve_of([r * 0.8 for r in CHOP]), self.bench)
+        self.assertGreater(harvest["t_vol"], 100)
+        self.assertEqual(directional["t_vol"], 0.0)  # an exact fit leaves rounding in beta_vol, not a signal
+
+    def test_a_curve_that_loses_on_big_moves_is_not_a_grid(self):
+        loser = curve_of([-abs(r) * 0.5 + 0.0001 for r in CHOP])
+        exposure = exposure_of(loser, self.bench)
+        self.assertGreater(exposure["vol_share"], 0.6)  # it does read the size of the move
+        self.assertLess(exposure["beta_vol"], 0)  # but it pays for it, so it is not a grid
+        report = grid_check(["fundamental"], True, curve=loser, bench=self.bench)
+        self.assertNotIn("volHarvest", [f["id"] for f in report["findings"]])
+
+    def test_noise_in_the_volatility_coefficient_is_not_charged(self):
+        wobble = curve_of(noise(21, 60, 0.004))  # unrelated to the benchmark
+        report = grid_check(["fundamental"], True, curve=wobble, bench=self.bench)
+        self.assertLess(abs(report["exposure"]["t_vol"]), 2)
+        self.assertNotIn("volHarvest", [f["id"] for f in report["findings"]])
+
+    def test_a_small_negative_autocorrelation_is_insurance_not_hurts(self):
+        p = persistence_of(curve_of(noise(4, 60, 0.01)))
+        self.assertTrue(-0.2 < p["gamma1"] < 0)  # negative, but inside two standard errors
+        self.assertEqual(p["stop"], "insurance")
+        self.assertNotIn("stopHurts", [f["id"] for f in grid_check(["fundamental"], True, curve=curve_of(noise(4, 60, 0.01)))["findings"]])
+
+    def test_a_large_negative_autocorrelation_still_hurts(self):
+        self.assertEqual(persistence_of(curve_of(CHOP))["stop"], "hurts")
+
+
 class Check(unittest.TestCase):
     def test_fails_a_price_only_rule_set_that_names_no_exit(self):
         r = grid_check(["price", "volume"], rank_exit=False)

@@ -45,6 +45,9 @@ export type RunStrings = {
   factor_debt_ratio: string
   factor_dividend_yield: string
   factor_momentum_6m: string
+  factor_momentum_12_1: string
+  factor_return_1m: string
+  factor_volatility_60d: string
 }
 
 export const strings: Dict<RunStrings> = {
@@ -92,6 +95,9 @@ export const strings: Dict<RunStrings> = {
     factor_debt_ratio: '负债率',
     factor_dividend_yield: '股息率',
     factor_momentum_6m: '6 个月动量',
+    factor_momentum_12_1: '12 减 1 个月动量',
+    factor_return_1m: '近 1 个月收益',
+    factor_volatility_60d: '60 日波动率',
   },
   en: {
     title: 'Engine run',
@@ -137,6 +143,9 @@ export const strings: Dict<RunStrings> = {
     factor_debt_ratio: 'Debt ratio',
     factor_dividend_yield: 'Dividend yield',
     factor_momentum_6m: '6-month momentum',
+    factor_momentum_12_1: '12-1 month momentum',
+    factor_return_1m: '1-month return',
+    factor_volatility_60d: '60-day volatility',
   },
   ar: {
     title: 'نتيجة المحرك',
@@ -182,5 +191,8 @@ export const strings: Dict<RunStrings> = {
     factor_debt_ratio: 'نسبة الدين',
     factor_dividend_yield: 'عائد التوزيعات',
     factor_momentum_6m: 'الزخم لستة أشهر',
+    factor_momentum_12_1: 'زخم 12 شهرًا دون آخر شهر',
+    factor_return_1m: 'عائد شهر واحد',
+    factor_volatility_60d: 'تقلب 60 يومًا',
   },
 }

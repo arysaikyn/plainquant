@@ -71,14 +71,20 @@ untraced and the UI already marks them so. It is a research assistant, not the e
   Only `/run` in `web/` reads a Result.
 - `web/src/lib/ledger.ts`, `lib/gridcheck.ts` and `data/shariaCoverage.ts` hold a second
   copy of what `model/audit.py` and `model/sharia.py` now compute. They go from `web/`
-  when the strategy screen and the screener stop using them. `audit.py` was checked against the compiled `gridcheck.ts` on
-  the same inputs (2026-11-23, Node 22.23.5): noise, regression coefficients, `gamma1`,
-  `sr` and the full report agree to the last digit. That check is a one-off, not in CI.
-  `sharia.py` is a logic port (same precedence and caps), not a numeric comparison: the
-  TS side reads mock fundamentals.
-- The grid check is uncalibrated. Its points are hand-set, and on pure-noise synthetic
-  data a fundamental spec still collects `volHarvest` from a 71-period regression. Treat
-  the score as a prompt to look, not a measurement, until it is tuned against known cases.
+  when the strategy screen and the screener stop using them. `audit.py` agreed with the
+  compiled `gridcheck.ts` to the last digit (2026-11-23, Node 22.23.5) until the significance
+  gates below; it now differs on purpose, and the TypeScript copy is only for the demo
+  screens. `sharia.py` is a logic port (same precedence and caps), not a numeric comparison:
+  the TS side reads mock fundamentals.
+- The grid check counts a measured finding only when it is significant. Measured on 120
+  pure-noise datasets of 25 names (2026-11-23): `stopHurts` fired in 52% of runs before the
+  gate and 2% after; `volHarvest` in 8% before and 4% after; a basic fundamental spec read as
+  a cross-section in 44% of runs before and 93% after. A grid needs a positive and significant
+  `|move|` coefficient (|t| of at least 2), and a negative autocorrelation must be beyond two
+  standard errors to read as "hurts". A coefficient too small to move the return is treated
+  as zero, because an exact fit leaves rounding noise in it. `model/tests/test_audit_noise.py`
+  pins this. Not done: the points (30, 25, 10, 20) and the 0.35, 0.6, 55, 25 cut-offs are
+  still hand-set, and no real grid strategy was available to tune them against.
 - **No model has been run against `agent/`.** The boundary is tested with scripted replies;
   whether a real model writes valid specs from the prompt is unmeasured, and that is what
   the eval is for. `agent/` needs `jsonschema` at runtime; it is declared nowhere yet and
@@ -100,14 +106,17 @@ untraced and the UI already marks them so. It is a research assistant, not the e
   1 GB of the development machine. Add a columnar reader when a measurement says so.
 - `model/store.py` imports `canonical()` from `model/run.py`, a loader depending on the
   runner. It is the one hashing function; move it only if a third caller appears.
-- Market rules are one table, `model/markets.py`. It registers `cn_a` only, with the three
-  frictions the engine does not model: T+1 settlement, daily price limits and 100-share
-  board lots (Shanghai Stock Exchange rule pages, checked 2026-11-23). The limits differ by
-  board and the sources disagree on some boards, so no percentage is written. A Snapshot
-  carries its market; the engine refuses a spec whose market differs from the snapshot's,
-  and refuses a market with no entry. Every Result starts its `warnings` with the list of
-  what is not modelled. `sa`, `hk` and `us` stay in the schema enum and are refused until
-  someone writes their frictions and holds data for them.
+- Market rules are one table, `model/markets.py`. It registers `cn_a` only. Modelled: the
+  stamp duty, charged on the seller only, 0.1% until 2023-08-27 and 0.05% from 2023-08-28
+  (HKEX circular, China Daily, China Briefing; a change after 2023 was not checked), at the
+  rate in force on the fill day; and suspension, meaning a name with no price on the fill day
+  is not bought and a name that should be sold is kept. Not modelled, and said in every
+  Result: T+1 settlement, daily price limits and 100-share board lots (Shanghai Stock
+  Exchange rule pages, checked 2026-11-23). The limits differ by board and the sources
+  disagree on some boards, so no percentage is written. A Snapshot carries its market; the
+  engine refuses a spec whose market differs from the snapshot's, and refuses a market with
+  no entry. `sa`, `hk` and `us` stay in the schema enum and are refused until someone writes
+  their rules and holds data for them.
 - The warning text is English whatever the app language. A coded warning would fix that and
   would change the contract; it waits for a second warning that the UI must translate.
 - No Saudi data source is cleared (`product.md`, open question 1), so nothing runs for `sa`.

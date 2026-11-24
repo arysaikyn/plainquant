@@ -9,7 +9,7 @@ not know which vendor.
 
 from __future__ import annotations
 
-from bisect import bisect_left, bisect_right
+from bisect import bisect_right
 from dataclasses import dataclass, field
 
 
@@ -55,9 +55,8 @@ class Snapshot:
         i = bisect_right(keys, date)
         return self.facts[symbol][i - 1][1].get(key) if i else None
 
-    def offset(self, date: str, bars: int) -> str | None:
-        """The trading day `bars` before `date` (`date` itself must be a trading day)."""
-        i = self._index.get(date)
-        if i is None:
-            i = bisect_left(self.dates, date)
-        return self.dates[i - bars] if 0 <= i - bars < len(self.dates) else None
+    def trailing(self, date: str, bars: int) -> list[str] | None:
+        """The `bars` + 1 trading days ending on the last trading day on or before `date`;
+        None when the data starts later than that."""
+        end = bisect_right(self.dates, date)
+        return self.dates[end - bars - 1 : end] if end - bars - 1 >= 0 else None

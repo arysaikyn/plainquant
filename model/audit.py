@@ -1,13 +1,16 @@
 """The grid check: is a run's return coming from the cross-section or from the path?
 
-Port of web/src/lib/gridcheck.ts, which stays the reference until the web app reads
-this module's output. Same findings, same points, same thresholds. Nothing here
-embeds a number that is not computed from the curve, the families or the facts the
-caller passes in.
+Started as a port of web/src/lib/gridcheck.ts. It now differs on purpose: a measured
+finding counts only when it is statistically significant. On pure-noise data the port
+flagged `stopHurts` in about half of all runs, because it read the sign of the lag-one
+autocorrelation and not its size. This module is the reference; the TypeScript copy only
+serves the demo screens. Nothing here embeds a number that is not computed from the curve,
+the families or the facts the caller passes in.
 """
 
 from __future__ import annotations
 
+import math
 from collections.abc import Sequence
 
 from .stats import mean, sd
@@ -37,6 +40,7 @@ FAMILY_DECAY = {
     "event": 3,
 }
 
+SIGNIFICANT = 2.0  # |t| a measured finding must reach before it counts
 TURNOVER_CAP = 1.0  # a book that replaces itself more than once a year cannot out-earn costs
 WEIGHT_CAP = 0.1
 SHORT_DECAY_BARS = 20
@@ -95,12 +99,26 @@ def exposure_of(curve: Sequence[float], bench: Sequence[float]) -> dict | None:
     m = sy / n
     ss_res = sum((y_ - (alpha + beta_drift * a + beta_vol * b)) ** 2 for y_, a, b in zip(ys, x1, x2))
     ss_tot = sum((y_ - m) ** 2 for y_ in ys)
+    # Standard error of beta_vol: sigma^2 times the last diagonal element of (X'X)^-1.
+    gram = [[n, s1, s2], [s1, s11, s12], [s2, s12, s22]]
+    column = _solve3(gram, [0.0, 0.0, 1.0])
+    variance = ss_res / (n - 3) * column[2] if column and n > 3 else None
+    se = math.sqrt(variance) if variance is not None and variance > 0 else 0.0
+    # A coefficient too small to move the return at all is rounding, however small its error:
+    # an exact fit gives both a ~1e-15 coefficient and a ~1e-15 error, and their ratio means nothing.
+    if abs(beta_vol) * sd(x2) <= 1e-9 * (sd(ys) or 1.0):
+        t_vol = 0.0
+    elif se > 1e-15:
+        t_vol = beta_vol / se
+    else:
+        t_vol = math.inf if beta_vol > 0 else -math.inf
     drift = abs(beta_drift) * sd(x1)
     vol = abs(beta_vol) * sd(x2)
     total = drift + vol
     return {
         "beta_drift": beta_drift,
         "beta_vol": beta_vol,
+        "t_vol": t_vol,
         "vol_share": vol / total if total > 1e-12 else 0.0,
         "r2": max(0.0, 1 - ss_res / ss_tot) if ss_tot > 1e-12 else 0.0,
         "n": n,
@@ -124,7 +142,10 @@ def persistence_of(curve: Sequence[float]) -> dict | None:
     gamma1 = num / denom
     spread = sd(rets)
     sr = m / spread if spread > 0 else 0.0
-    stop = "adds" if gamma1 >= sr else "insurance" if gamma1 >= 0 else "hurts"
+    # Under no autocorrelation gamma1 has a standard error of about 1/sqrt(n). A negative value
+    # inside two of them is noise, so it reads as "insurance" (volatility, not return), not "hurts".
+    significantly_negative = gamma1 < -SIGNIFICANT / math.sqrt(n)
+    stop = "adds" if gamma1 >= sr else "hurts" if significantly_negative else "insurance"
     return {"gamma1": gamma1, "sr": sr, "stop": stop}
 
 
@@ -152,7 +173,8 @@ def grid_check(
         findings.append({"id": "shortDecay", "points": 10})
 
     exposure = exposure_of(curve, bench) if curve is not None and bench is not None else None
-    if exposure:
+    # A grid earns the size of a move: the coefficient must be positive and not noise.
+    if exposure and exposure["beta_vol"] > 0 and exposure["t_vol"] >= SIGNIFICANT:
         if exposure["vol_share"] >= 0.6:
             findings.append({"id": "volHarvest", "points": 20})
         elif exposure["vol_share"] >= 0.35:
