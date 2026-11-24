@@ -21,6 +21,15 @@ question --LLM--> Spec --engine + data snapshot--> Result --LLM--> claims --> we
   version, engine version. Same three, same result.
 - **Web** renders the result. It formats; it does not compute.
 
+## Fill timing
+
+A rebalance ranks on the close of the rebalance day and fills on the close of the next
+trading day. Ranking and filling on one close would trade at a price the strategy had
+already seen. At the end of the data, where there is no next day, the last day stands in.
+The equity curve's dates are fill dates; `as_of` is the last ranking day. Tests: the fill
+date and the period return are computed from the fill prices, data after the last fill
+cannot change a result, and prices after a ranking day cannot change the ranking.
+
 ## Where each invariant is enforced
 
 | Invariant | Enforced by | Not by |
@@ -84,9 +93,11 @@ untraced and the UI already marks them so. It is a research assistant, not the e
   in `model/factors.py`. A spec that names an unregistered factor passes the schema and is
   refused by the engine. Listing the ids in the schema would make that one check, not two,
   but it would also make the schema a second owner of the factor list.
-- The kernel is pure Python over CSV. That is fine for an index-sized universe (hundreds of
-  names, six years of daily closes); a full A-share snapshot is millions of rows and will
-  need a columnar reader. Add that dependency when a measurement says so, not before.
+- The kernel is pure Python over CSV. Measured on 2026-11-23 on synthetic data, 300 names
+  and 6 years of daily closes (469 800 prices): a monthly run takes 0.28 s, a weekly run
+  1.1 s, reading the snapshot 1.7 s, peak memory 181 MB. A full A-share snapshot is about
+  17 times larger; that is an extrapolation, not a measurement, and it would not fit in the
+  1 GB of the development machine. Add a columnar reader when a measurement says so.
 - `model/store.py` imports `canonical()` from `model/run.py`, a loader depending on the
   runner. It is the one hashing function; move it only if a third caller appears.
 - Market rules are one table, `model/markets.py`. It registers `cn_a` only, with the three

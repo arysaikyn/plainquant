@@ -119,7 +119,7 @@
     },
     "backtest": {
       "type": "object",
-      "description": "Present when the spec was run over its period. Dates and rebalance frequency are in the spec.",
+      "description": "Present when the spec was run over its period. Dates and rebalance frequency are in the spec. Each equity_curve date is the day the book was filled, one trading day after the ranking day.",
       "required": [
         "metrics"
       ],

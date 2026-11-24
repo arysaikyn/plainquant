@@ -1,10 +1,11 @@
 import unittest
 
-from ..backtest import marks_of, run_backtest
+from ..backtest import fill_date, marks_of, run_backtest
 from ..factors import factor
 from ..run import run, spec_hash
 from ..screen import screen, select
 from ..snapshot import Snapshot
+import dataclasses
 from .fixtures import make_snapshot, spec
 
 NOW = "2026-01-01T00:00:00Z"
@@ -52,6 +53,18 @@ class Screen(unittest.TestCase):
         ranked = screen(spec(), self.snap, self.date)
         self.assertTrue(ranked)
         self.assertTrue(all(r["factors"]["debt_ratio"] < 0.9 for r in ranked))
+
+    def test_prices_after_the_ranking_day_cannot_move_the_ranking(self):
+        day = "2021-06-30"
+        momentum = spec(filters=[], rank=[{"factor": "momentum_6m", "direction": "desc"}])
+        before = screen(momentum, self.snap, day)
+        future = make_snapshot()
+        for series in future.prices.values():
+            for d in series:
+                if d > day:
+                    series[d] *= 10
+        future.__post_init__()
+        self.assertEqual(before, screen(momentum, future, day))
 
     def test_a_missing_input_is_out_not_zero(self):
         s = make_snapshot()
@@ -128,6 +141,38 @@ class Backtest(unittest.TestCase):
         m = run_backtest(spec(), make_snapshot())["metrics"]
         self.assertLessEqual(m["max_drawdown"], 0)
         self.assertGreaterEqual(m["turnover"], 0)
+
+    def test_a_rebalance_is_filled_on_the_next_trading_day_not_on_the_ranking_close(self):
+        snap = make_snapshot()
+        s = spec(top_k=1, n_drop=0, filters=[], rank=[{"factor": "debt_ratio", "direction": "asc"}])
+        out = run_backtest(s, snap)
+        marks = marks_of(snap, "M", s["period"]["start"], s["period"]["end"])
+        self.assertEqual(out["dates"][0], fill_date(snap, marks[0]))
+        self.assertGreater(out["dates"][0], marks[0])
+        held = screen(s, snap, marks[0])[0]["symbol"]
+        move = snap.price_at(held, out["dates"][1]) / snap.price_at(held, out["dates"][0]) - 1
+        cost = 0.0015 + 0.005  # the whole book is bought once, so the traded weight is 1
+        self.assertAlmostEqual(out["curve"][1] - 1, move - cost, places=12)
+
+    def test_the_last_period_of_the_data_uses_the_last_day_as_its_fill(self):
+        snap = make_snapshot()
+        self.assertEqual(fill_date(snap, snap.dates[-1]), snap.dates[-1])
+        self.assertEqual(fill_date(snap, snap.dates[0]), snap.dates[1])
+
+    def test_nothing_after_the_last_fill_is_ever_read(self):
+        snap = make_snapshot()
+        s = spec(period={"start": "2020-01-01", "end": "2024-06-30"})
+        full = run_backtest(s, snap)
+        last = full["dates"][-1]
+        cut = dataclasses.replace(
+            snap,
+            dates=[d for d in snap.dates if d <= last],
+            prices={sym: {d: p for d, p in series.items() if d <= last} for sym, series in snap.prices.items()},
+            facts={sym: [(d, row) for d, row in rows if d <= last] for sym, rows in snap.facts.items()},
+        )
+        self.assertLess(len(cut.dates), len(snap.dates))
+        again = run_backtest(s, cut)
+        self.assertEqual((again["curve"], again["bench"], again["metrics"]), (full["curve"], full["bench"], full["metrics"]))
 
     def test_a_period_with_one_date_is_refused(self):
         with self.assertRaises(ValueError):

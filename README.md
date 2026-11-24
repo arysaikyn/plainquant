@@ -180,7 +180,7 @@ web/         React + Vite + Tailwind UI, demo mode, local state
 backend/     FastAPI proxy, provider settings, tests
 model/       the engine (stdlib only) and the two contracts: spec and signals
 agent/       question -> spec, result -> claims, and the eval that measures them
-docs/        product notes, the design reference set, screenshots
+docs/        product notes, the roadmap, the design reference set, screenshots
 dev.sh       one-command development stack
 ```
 

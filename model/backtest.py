@@ -1,6 +1,9 @@
 """Run a spec over its period on a snapshot.
 
-Equal weight, rebalanced at the end of each period, priced at the close. Cost is
+Equal weight, rebalanced at the end of each period. The ranking uses the close of the
+rebalance day; the trade is filled at the close of the NEXT trading day. Ranking and filling
+on the same close would let the strategy trade at a price it had already seen. At the end of
+the data, where no next day exists, the last day stands in. Cost is
 charged on every unit traded, buys and sells alike: `sum |dw| * (fee + slip)`. The
 weights are the target weights at each rebalance, so drift inside a period is not
 modelled. The first formation pays the cost of buying the whole book but is left
@@ -13,6 +16,7 @@ has a curve to measure the path against.
 from __future__ import annotations
 
 import math
+from bisect import bisect_right
 from datetime import date as _date
 
 from .screen import screen, select
@@ -46,6 +50,12 @@ def marks_of(snap: Snapshot, freq: str, start: str, end: str) -> list[str]:
     return [window[0]] + [d for d in last_of.values() if d > window[0]]
 
 
+def fill_date(snap: Snapshot, day: str) -> str:
+    """The trading day after `day`, or `day` itself when the data ends there."""
+    i = bisect_right(snap.dates, day)
+    return snap.dates[i] if i < len(snap.dates) else day
+
+
 def _period_return(snap: Snapshot, symbols: list[str], a: str, b: str) -> float:
     rets = []
     for s in symbols:
@@ -65,16 +75,18 @@ def run_backtest(spec: dict, snap: Snapshot) -> dict:
     curve, bench = [1.0], [1.0]
     period_rets: list[float] = []
     traded: list[float] = []
-    for a, b in zip(marks, marks[1:]):
+    fills = [fill_date(snap, m) for m in marks]
+    for i, (a, b) in enumerate(zip(marks, marks[1:])):
+        fa, fb = fills[i], fills[i + 1]
         target = select(held, screen(spec, snap, a), spec["top_k"], spec["n_drop"])
         w_old = {s: 1 / len(held) for s in held}
         w_new = {s: 1 / len(target) for s in target}
         delta = sum(abs(w_new.get(s, 0.0) - w_old.get(s, 0.0)) for s in set(w_old) | set(w_new))
         traded.append(delta)
-        net = _period_return(snap, target, a, b) - delta * rate
+        net = _period_return(snap, target, fa, fb) - delta * rate
         period_rets.append(net)
         curve.append(curve[-1] * (1 + net))
-        bench.append(bench[-1] * (1 + _period_return(snap, snap.universe_at(a), a, b)))
+        bench.append(bench[-1] * (1 + _period_return(snap, snap.universe_at(a), fa, fb)))
         held = target
 
     final_ranked = screen(spec, snap, marks[-1])
@@ -88,7 +100,7 @@ def run_backtest(spec: dict, snap: Snapshot) -> dict:
     spread = sd(period_rets)
     steady = traded[1:]
     return {
-        "dates": marks,
+        "dates": fills,  # the days the book was filled; `as_of` stays the last ranking day
         "curve": curve,
         "bench": bench,
         "metrics": {
