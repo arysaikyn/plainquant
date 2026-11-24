@@ -242,6 +242,7 @@ export default function MarketPage() {
 
   return (
     <Screen
+      demo
       title={t('tab.market')}
       action={
         <div className="flex items-center gap-2">

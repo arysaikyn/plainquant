@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
+import { useI18n } from '../i18n'
 
 type Props = {
   title?: string
@@ -10,12 +11,15 @@ type Props = {
   children: ReactNode
   /** Set false for full-bleed screens (charts, maps). */
   padded?: boolean
+  /** The screen reads sample data: say so under the title. */
+  demo?: boolean
 }
 
 let lastFocusedPath: string | null = null
 
-export function Screen({ title, leading, action, children, padded = true }: Props) {
+export function Screen({ title, leading, action, children, padded = true, demo = false }: Props) {
   const { pathname } = useLocation()
+  const { t } = useI18n()
   const headingRef = useRef<HTMLHeadingElement>(null)
 
   // Move focus to the page name on every real route change. The first paint
@@ -66,6 +70,7 @@ export function Screen({ title, leading, action, children, padded = true }: Prop
           {action}
         </header>
       )}
+      {demo && <p className="px-4 pb-2 text-xs text-muted">{t('demo.note')}</p>}
       <div className={padded ? 'px-4' : ''}>{children}</div>
     </main>
   )

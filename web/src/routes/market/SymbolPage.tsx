@@ -183,6 +183,7 @@ export default function SymbolPage() {
 
   return (
     <Screen
+      demo
       title={quote.name[lang]}
       leading={back}
       action={

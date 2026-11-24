@@ -328,7 +328,7 @@ export default function ScreenerPage() {
   const showsTurnoverHint = rules.some((rule) => rule.field === 'turnover')
 
   return (
-    <Screen title={s('title')} leading={<BackButton fallback="/search" />}>
+    <Screen demo title={s('title')} leading={<BackButton fallback="/search" />}>
       <div className="mt-4">
         <p className="t-kicker" style={kicker}>
           {s('presetsLabel')}
