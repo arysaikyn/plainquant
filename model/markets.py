@@ -21,13 +21,10 @@ FRICTIONS: dict[str, tuple[str, ...]] = {
 }
 
 
-def frictions(market: str) -> tuple[str, ...]:
-    """What the engine does not model for `market`; refuses a market with no entry."""
+def warning(market: str) -> str:
+    """The note every Result for `market` starts with; refuses a market with no entry."""
     try:
-        return FRICTIONS[market]
+        left_out = FRICTIONS[market]
     except KeyError:
         raise ValueError(f"no market rules are registered for {market!r}; registered: {sorted(FRICTIONS)}") from None
-
-
-def warning(market: str) -> str:
-    return f"Not modelled for {market}: {', '.join(frictions(market))}. Results ignore these frictions."
+    return f"Not modelled for {market}: {', '.join(left_out)}. Results ignore these frictions."
