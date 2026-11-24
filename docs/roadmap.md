@@ -28,7 +28,7 @@ nowhere else.
 
 | # | Phase | Status | Exit criterion |
 |---|---|---|---|
-| 1 | Real data | blocked | A real snapshot passes the data checks and `/run` shows a real result with its limits. Blocked on the user running the first fetch, or allowing it. |
+| 1 | Real data | in progress | A real snapshot passes `data.check` and `/run` shows a real result with its limits. The 20-name trial passes; the full fetch is running. |
 | 2 | Engine is trustworthy on real data | in progress | Fill lag, tradability and costs are modelled and tested; the audit false-positive rate is a number; run time is a number. |
 | 3 | Sharia that works | not started | `compliant_only` returns a non-empty real result that matches a public list on at least 30 names. |
 | 4 | Saudi Arabia | blocked | A real `sa` run. Blocked on a data licence. |
@@ -39,7 +39,7 @@ nowhere else.
 
 ## Tasks
 
-**1 Real data.** Fix the field names the first live response shows. Fetch the full CSI 300 for 2019 to 2024. Check every sentence of the builder's `LIMITATIONS` against the response. Test whether `query_hs300_stocks(date=...)` returns the historical list (the parameter exists in the source; the behaviour is unconfirmed) and, if so, build point-in-time membership. Add a snapshot check command (calendar coverage, price gaps, jumps after adjustment, publication-date spread, names with no report). Reconcile the equal-weight return with the published index return and write the tolerance down.
+**1 Real data.** Done: the field names are confirmed; the debt-ratio defect found and handled; the limitations checked against the response; historical membership works and is built; `data.check` exists; a 20-name trial ran end to end. To do: finish and check the full fetch; reconcile the equal-weight return with the published CSI 300 return and write the tolerance down; decide which of the fields seen but not used (`roeAvg`, `totalShare`, per-day `pctChg` and `isST`) to fetch, then fetch once more.
 
 **2 Engine.** Done: fill lag (rank at t, fill at t+1), the look-ahead tests for prices and for data after the last fill, a measured run time, suspension as "no price on the fill day", the seller's stamp duty by date, a significance gate on the audit with a measured noise false-positive rate, and four price factors in `docs/factors.md`. To do: limit up and down, ST and delisting (these need per-day data the first live fetch will show), the trial count for a deflated Sharpe, and the value, quality and size factors once real fields are known.
 

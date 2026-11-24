@@ -127,21 +127,46 @@ untraced and the UI already marks them so. It is a research assistant, not the e
 `data/raw/` (git ignores it). The module is stdlib plus the `baostock` package, which is
 not a dependency of this repo. Run it with a package you have read:
 
-    PYTHONPATH=<dir holding baostock> python3 -m data.baostock_source --out data/raw/csi300 --limit 20
+    PYTHONPATH=<dir holding baostock> python3 -m data.baostock_source --out data/raw/csi300 [--limit 20]
+    python3 -m data.check data/raw/csi300
     python3 -m model SPEC.json data/raw/csi300 --query "..." -o model/signals.json
 
-What it does about point in time: a report becomes visible on its publication date, not its
-period end; each fact row repeats every value known that day, because the engine reads the
-latest row only. A mutation test (publish on the period end) makes the suite fail.
+It ran against the live service on 2026-11-23. A 20-name trial took 313 s (about 15 s a
+name); the full CSI 300 with its past members is 488 names, so about two hours. The field
+names it reads were confirmed against a live response.
 
-What it cannot fix is written into the snapshot as `limitations`, and every Result run on it
-starts its `warnings` with them: the universe is today's CSI 300 list (survivorship bias);
-`debt_ratio` is liabilities over assets, not the AAOIFI ratio; the AAOIFI inputs are not
-published, so every name is Sharia unknown and `compliant_only` returns nothing; the
-dividend yield only changes on an announcement.
+**What the live response showed that no fake could.** In newer reports (2024 on the three
+names checked) `liabilityToAsset` is 100 times too small, while `assetToEquity` is right.
+`debt_ratio` is therefore `1 - 1/assetToEquity`, and the source's own field is a cross-check
+whose disagreements are counted into the snapshot (60 of 560 reports in the trial). Two
+reports can share a publication day (the annual report and the first quarter, late April);
+the later period wins. A name is retried three times after logging in again; one that never
+answers is skipped and named in the limitations.
 
-Not confirmed: that Baostock's field names match the code, and whether its data may be
-shown or redistributed. A missing field stops the run and lists the fields the server sent.
+**Point in time.** A report is visible from its publication date, not its period end. Each
+fact row repeats every value known that day, because the engine reads the latest row only.
+Membership comes from `query_hs300_stocks(date=...)` sampled on the first day of each half
+year (115 of the 300 names of 2019 are not in today's list), kept as intervals so a name can
+leave and return. Mutation tests (publish on the period end, use the scaled field, tie-break
+on the ratio, one try) each make the suite fail.
+
+**What the snapshot says is wrong with it**, written into its `limitations` and repeated at
+the head of every Result's `warnings`: membership is a half-yearly sample, so a change in
+between is late; a delisted name keeps its last price; the balance endpoint carries only
+ratios, so the AAOIFI inputs do not exist and every name is Sharia unknown (`compliant_only`
+returns nothing); the dividend yield moves only on an announcement; prices are back-adjusted;
+the debt-ratio correction and its count.
+
+**Fields seen but not used yet**: `peTTM`, `pbMRQ`, `psTTM`, `turn`, `pctChg`, `isST` per day;
+`roeAvg`, `totalShare`, `netProfit`, `epsTTM` per report. Whether the daily `peTTM` and
+`pbMRQ` use only what was known that day was not checked, so no factor reads them.
+`pctChg` and `isST` would let the engine see limit moves; the limits by board are not settled.
+
+**Not confirmed:** whether Baostock's data may be shown or redistributed; its terms were not
+found. Use it for local research only. `python3 -m data.check` reports what is wrong with a
+snapshot (calendar holes, price jumps, names with no report, debt ratios outside 0 to 1,
+months with too few members); its calendar threshold is 14 days, set from the closures
+measured in 2019 to 2024 (11 days at most).
 
 ## Wiring the web app
 
