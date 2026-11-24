@@ -144,6 +144,9 @@ export default function MarketPage() {
   const { market: prefMarket } = usePrefs()
   const heroIndex =
     indices.find((ix) => ix.symbol === boardOf(prefMarket).indexSymbol) ?? indices[0]
+  // One board shows only the names priced on its venue; a Saudi name does not belong on the China A board.
+  const currency = boardOf(prefMarket).currency
+  const boardQuotes = useMemo(() => quotes.filter((q) => q.currency === currency), [currency])
   const restIndices = indices.filter((ix) => ix.symbol !== heroIndex.symbol)
 
   /** Patch the board in place. replace keeps history as destination → destination,
@@ -163,7 +166,7 @@ export default function MarketPage() {
   const setFrame = (next: HeatFrame) => writeBoard({ frame: next })
 
   const ranked = useMemo(() => {
-    const list = sector ? membersOf(sector) : quotes
+    const list = sector ? membersOf(sector, currency) : boardQuotes
     return [...list].sort((a, b) =>
       sort === 'chg'
         ? b.change - a.change
@@ -171,7 +174,7 @@ export default function MarketPage() {
           ? a.change - b.change
           : a.name[lang].localeCompare(b.name[lang], lang),
     )
-  }, [sector, sort, lang])
+  }, [sector, sort, lang, currency, boardQuotes])
 
   // The map's bands are the sectors that own a quote: the mock only carries five
   // names, so a sector with no constituent is left out rather than drawn as an
@@ -179,14 +182,14 @@ export default function MarketPage() {
   const heatGroups = useMemo<TreemapGroup[]>(() => {
     const groups: TreemapGroup[] = []
     for (const sec of sectors) {
-      const members = membersOf(sec.id)
+      const members = membersOf(sec.id, currency)
       if (members.length === 0) continue
       groups.push({
         id: sec.id,
         label: sec.name[lang],
         // Always the mean of the band's own tiles, from the shared membership
         // table: the sector page and the AI chips print this same figure.
-        change: membersChange(sec.id, frame),
+        change: membersChange(sec.id, frame, currency),
         weight: sec.weight,
         tiles: members.map((q) => ({
           key: q.symbol,
@@ -200,21 +203,21 @@ export default function MarketPage() {
       })
     }
     return groups
-  }, [frame, lang])
+  }, [frame, lang, currency])
 
   // One row per sector that actually has members; the strip and the map share
   // the same numbers, so the two can never disagree.
   const strip = useMemo(
     () =>
       sectors
-        .filter((sec) => membersOf(sec.id).length > 0)
+        .filter((sec) => membersOf(sec.id, currency).length > 0)
         .map((sec) => ({
           id: sec.id,
           label: sec.name[lang],
-          change: membersChange(sec.id, '1d'),
+          change: membersChange(sec.id, '1d', currency),
           weight: sec.weight,
         })),
-    [lang],
+    [lang, currency],
   )
   const pickedQuote = picked ? (quotes.find((q) => q.symbol === picked) ?? null) : null
 
@@ -283,7 +286,7 @@ export default function MarketPage() {
       {/* Live tape: the screen's signature, 0 KB */}
       <div className="mt-3">
         <TickerTape
-          quotes={quotes.slice(0, 5).concat(indices.map((ix) => ({
+          quotes={boardQuotes.slice(0, 5).concat(indices.map((ix) => ({
             symbol: ix.symbol,
             name: ix.name,
             price: ix.value,
