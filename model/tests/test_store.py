@@ -42,6 +42,16 @@ class Store(unittest.TestCase):
         self.assertEqual(store.load(Path(self.tmp.name) / "lim").limitations, ["Universe is today's list."])
         self.assertEqual(store.load(self.dir).limitations, [])
 
+    def test_a_name_that_left_the_index_and_came_back_keeps_both_stays(self):
+        s = make_snapshot(n=12)
+        s.membership["S000"] = [("2019-01-01", "2020-06-30"), ("2021-01-04", None)]
+        store.write(s, Path(self.tmp.name) / "gap")
+        loaded = store.load(Path(self.tmp.name) / "gap")
+        self.assertEqual(loaded.membership["S000"], [("2019-01-01", "2020-06-30"), ("2021-01-04", None)])
+        self.assertIn("S000", loaded.universe_at("2020-03-02"))
+        self.assertNotIn("S000", loaded.universe_at("2020-09-01"))
+        self.assertIn("S000", loaded.universe_at("2021-02-01"))
+
     def test_an_older_manifest_format_is_refused(self):
         self._retouch("dates.csv", lambda t: t)  # keep the files consistent with the manifest
         path = self.dir / "manifest.json"

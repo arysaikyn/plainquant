@@ -14,7 +14,7 @@ def snapshot(prices_of, n=400):
     series = {d: prices_of(i) for i, d in enumerate(days)}
     return Snapshot(
         version="t", universe="u", market="cn_a", dates=days, prices={"A": series}, facts={"A": []},
-        membership={"A": (days[0], None)},
+        membership={"A": [(days[0], None)]},
     ), days
 
 

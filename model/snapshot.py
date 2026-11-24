@@ -22,8 +22,8 @@ class Snapshot:
     prices: dict[str, dict[str, float]]  # symbol -> date -> close
     # symbol -> [(announce_date, {fact key -> value or None})], ascending by date
     facts: dict[str, list[tuple[str, dict[str, float | None]]]]
-    # symbol -> (first date a member, last date a member or None)
-    membership: dict[str, tuple[str, str | None]]
+    # symbol -> intervals [(first date a member, last date a member or None)]; a name can leave and return
+    membership: dict[str, list[tuple[str, str | None]]]
     names: dict[str, str] = field(default_factory=dict)
     sectors: dict[str, str] = field(default_factory=dict)
     # Known defects of this data, in plain sentences. Every Result run on it repeats them.
@@ -36,7 +36,9 @@ class Snapshot:
 
     def universe_at(self, date: str) -> list[str]:
         return sorted(
-            s for s, (first, last) in self.membership.items() if first <= date and (last is None or date <= last)
+            s
+            for s, intervals in self.membership.items()
+            if any(first <= date and (last is None or date <= last) for first, last in intervals)
         )
 
     def price_at(self, symbol: str, date: str) -> float | None:

@@ -8,7 +8,7 @@ snapshot directories under `data/raw/`.
     dates.csv       date
     prices.csv      symbol,date,close
     facts.csv       symbol,announce_date,key,value        (empty value = not published)
-    membership.csv  symbol,first,last                     (empty last = still a member)
+    membership.csv  symbol,first,last                     (one row per interval; empty last = still a member)
     names.csv       symbol,name,sector
 
 `data_version` is a hash of the manifest, so it changes if and only if a byte of data
@@ -68,7 +68,7 @@ def write(snap: Snapshot, directory: str | Path) -> str:
     _write(
         out / "membership.csv",
         ["symbol", "first", "last"],
-        [[s, first, last] for s, (first, last) in sorted(snap.membership.items())],
+        [[s, first, last] for s, intervals in sorted(snap.membership.items()) for first, last in sorted(intervals, key=lambda i: i[0])],
     )
     _write(
         out / "names.csv",
@@ -120,7 +120,9 @@ def load(directory: str | Path) -> Snapshot:
         grouped.setdefault(r["symbol"], {}).setdefault(r["announce_date"], {})[r["key"]] = _num(r["value"])
     facts = {s: sorted(by_date.items()) for s, by_date in grouped.items()}
 
-    membership = {r["symbol"]: (r["first"], r["last"] or None) for r in _rows(src / "membership.csv")}
+    membership: dict[str, list[tuple[str, str | None]]] = {}
+    for r in _rows(src / "membership.csv"):
+        membership.setdefault(r["symbol"], []).append((r["first"], r["last"] or None))
     names_rows = list(_rows(src / "names.csv"))
     return Snapshot(
         version=version_of(manifest),

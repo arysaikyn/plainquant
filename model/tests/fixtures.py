@@ -49,7 +49,7 @@ def make_snapshot(seed: int = 1, n: int = 40, flat: bool = False, market: str = 
     for i in range(n):
         symbol = f"S{i:03d}"
         names[symbol] = f"Name {i}"
-        membership[symbol] = (dates[0], None)
+        membership[symbol] = [(dates[0], None)]
         level, series = 100.0, {}
         drift, vol = rng.uniform(-0.0001, 0.0006), rng.uniform(0.008, 0.02)
         for d in dates:
