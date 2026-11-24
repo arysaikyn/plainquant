@@ -56,11 +56,11 @@ export const SECTOR_OF: Record<string, string[]> = (() => {
 /** The quotes in a sector. A sector the mock universe does not reach returns
     an empty list, so callers show their empty state instead of inventing
     constituents. */
-export function membersOf(sectorId: string): Quote[] {
+export function membersOf(sectorId: string, currency?: string): Quote[] {
   const out: Quote[] = []
   for (const symbol of SECTOR_OF[sectorId] ?? []) {
     const quote = quoteBySymbol[symbol]
-    if (quote) out.push(quote)
+    if (quote && (currency === undefined || quote.currency === currency)) out.push(quote)
   }
   return out
 }
@@ -84,8 +84,8 @@ export function frameChange(q: Quote, frame: HeatFrame): number {
     more digits. Every screen reads a sector's move through this function, so
     the map band, the sector page, the AI chip and the review always print the
     same figure. */
-export function membersChange(sectorId: string, frame: HeatFrame = '1d'): number {
-  const members = membersOf(sectorId)
+export function membersChange(sectorId: string, frame: HeatFrame = '1d', currency?: string): number {
+  const members = membersOf(sectorId, currency)
   let total = 0
   let weighted = 0
   for (const q of members) {
