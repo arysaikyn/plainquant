@@ -234,6 +234,14 @@ class DroppedConnection(unittest.TestCase):
         self.assertFalse(any("could not be fetched" in t for t in snap.limitations))
 
 
+class SampleNotice(unittest.TestCase):
+    def test_a_limited_build_says_it_is_a_sample_and_a_full_one_does_not(self):
+        part = src.build(FakeBs(4), "2019-01-01", "2019-12-31", limit=2)
+        whole = src.build(FakeBs(4), "2019-01-01", "2019-12-31")
+        self.assertTrue(any(t.startswith("Sample only: 2 of the 4 names") for t in part.limitations))
+        self.assertFalse(any(t.startswith("Sample only") for t in whole.limitations))
+
+
 class Resume(unittest.TestCase):
     """A run that dies keeps what it fetched."""
 

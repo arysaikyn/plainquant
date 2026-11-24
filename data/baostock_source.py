@@ -337,6 +337,11 @@ def build(
         bs.login()
         failed = [(c, n) for c, n in failed if not fetch(c, n, "retry")]
     failed_codes = [c for c, _ in failed]
+    sample = (
+        [f"Sample only: {len(pairs)} of the {len(called)} names that were ever CSI 300 members, taken in the order the source listed them. This is not the index."]
+        if len(pairs) < len(called)
+        else []
+    )
 
     return Snapshot(
         version="",
@@ -349,6 +354,7 @@ def build(
         names=names,
         sectors=sectors,
         limitations=LIMITATIONS
+        + sample
         + ([quality.sentence()] if quality.sentence() else [])
         + ([f"{len(failed_codes)} names could not be fetched after {TRIES} tries, twice, and are missing: {', '.join(failed_codes)}."] if failed_codes else []),
     )

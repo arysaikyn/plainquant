@@ -28,7 +28,7 @@ nowhere else.
 
 | # | Phase | Status | Exit criterion |
 |---|---|---|---|
-| 1 | Real data | in progress | A real snapshot passes `data.check` and `/run` shows a real result with its limits. The 20-name trial passes; the full fetch is running. |
+| 1 | Real data | partly done | A real snapshot passes `data.check` and `/run` shows a real result with its limits. Decided 2026-11-24: the demo is a 20-name real sample, labelled as a sample in every Result. The full fetch failed twice (killed for memory; then the source refused connections) and is not run; the builder now resumes from `OUT.partial`. |
 | 2 | Engine is trustworthy on real data | in progress | Fill lag, tradability and costs are modelled and tested; the audit false-positive rate is a number; run time is a number. |
 | 3 | Sharia that works | not started | `compliant_only` returns a non-empty real result that matches a public list on at least 30 names. |
 | 4 | Saudi Arabia | blocked | A real `sa` run. Blocked on a data licence. |
@@ -39,7 +39,7 @@ nowhere else.
 
 ## Tasks
 
-**1 Real data.** Done: the field names are confirmed; the debt-ratio defect found and handled; the limitations checked against the response; historical membership works and is built; `data.check` exists; a 20-name trial ran end to end. To do: finish and check the full fetch; reconcile the equal-weight return with the published CSI 300 return and write the tolerance down; decide which of the fields seen but not used (`roeAvg`, `totalShare`, per-day `pctChg` and `isST`) to fetch, then fetch once more.
+**1 Real data.** Done: the field names are confirmed; the debt-ratio defect found and handled; the limitations checked against the response; historical membership works and is built; `data.check` exists; a 20-name trial ran end to end. To do (waits for the source to answer again): run the full fetch with `python3 -m data.baostock_source --out data/raw/csi300`; check it; reconcile the equal-weight return with the published CSI 300 return and write the tolerance down; decide which of the fields seen but not used (`roeAvg`, `totalShare`, per-day `pctChg` and `isST`) to fetch, then fetch once more.
 
 **2 Engine.** Done: daily price limits on the fill day (10% main board, 20% ChiNext from 2020-08-24, 20% STAR), fill lag (rank at t, fill at t+1), the look-ahead tests for prices and for data after the last fill, a measured run time, suspension as "no price on the fill day", the seller's stamp duty by date, a significance gate on the audit with a measured noise false-positive rate, and four price factors in `docs/factors.md`. To do: ST (the 5% limit and the flag need per-day data) and delisting, the trial count for a deflated Sharpe (it needs a stored run log, so it waits for phase 6), and the value, quality and size factors once real fields are known.
 
