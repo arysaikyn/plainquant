@@ -172,7 +172,7 @@ export default function NewsPage() {
   }, [now, source])
 
   return (
-    <Screen title={s('title')}>
+    <Screen demo title={s('title')}>
       {sources.length > 1 && (
         <div
           role="group"

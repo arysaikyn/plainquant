@@ -33,7 +33,7 @@ nowhere else.
 | 3 | Sharia that works | not started | `compliant_only` returns a non-empty real result that matches a public list on at least 30 names. |
 | 4 | Saudi Arabia | blocked | A real `sa` run. Blocked on a data licence. |
 | 5 | Agent live | in progress | Three languages from the UI to a result and an explanation; eval numbers recorded; reproduction works. The route, the screen and their tests exist; no key has been used yet. |
-| 6 | Other screens read results | not started | No screen reads mock data unless labelled. The user picks the plan first. |
+| 6 | Other screens read results | started | No screen reads mock data unless labelled. Done: Markets, a symbol page, News and the Screener say "Demo data" under the title (`Screen demo`). The user picks the plan for the rest. |
 | 7 | Product completeness | not started | Disclaimers reviewed, warnings coded and translated, refresh job, runbook. Licence and regulatory questions answered. |
 | 8 | Release hygiene | not started | e2e and the design gate run in CI; deprecated dependencies replaced. |
 

@@ -16,6 +16,7 @@ export type Dict<T extends Record<string, string>> = { zh: T; en: T; ar: T }
 
 const global = {
   zh: {
+    'demo.note': '演示数据：这里的行情和新闻是样本，不是实时数据。',
     'tab.market': '行情',
     'tab.news': '新闻',
     'tab.ai': 'AI',
@@ -67,6 +68,7 @@ const global = {
     'common.boundaryBody': '你的数据还在。重试通常就能恢复。',
   },
   en: {
+    'demo.note': 'Demo data: the quotes and news here are samples, not live.',
     'tab.market': 'Markets',
     'tab.news': 'News',
     'tab.ai': 'AI',
@@ -118,6 +120,7 @@ const global = {
     'common.boundaryBody': 'Your data is still here. Retrying usually fixes it.',
   },
   ar: {
+    'demo.note': 'بيانات تجريبية: الأسعار والأخبار هنا عيّنات وليست مباشرة.',
     'tab.market': 'الأسواق',
     'tab.news': 'الأخبار',
     'tab.ai': 'AI',
