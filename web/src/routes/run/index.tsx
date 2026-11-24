@@ -116,21 +116,22 @@ function Ready({ run, claims }: { run: Signals; claims: Claims | null }) {
         <h2 id="run-question" className="text-sm text-muted">
           {s('question')}
         </h2>
-        <p className="mt-1 text-md leading-snug">{run.query}</p>
+        <p className={`mt-1 text-xl leading-snug ${lang === 'en' ? 'font-serif' : ''}`}>{run.query}</p>
         <p className="mt-1 text-xs text-muted">{fill(s('asOf'), { date: isolate(run.as_of) })}</p>
       </section>
 
       {run.warnings.length > 0 && (
-        <section className="panel mt-4 p-3" aria-labelledby="run-notes">
-          <h2 id="run-notes" className="text-sm">
-            {s('notes')}
-          </h2>
-          <ul className="mt-1 text-xs text-muted">
+        <details className="mt-4 border-t border-line">
+          <summary className="min-h-11 cursor-pointer list-none text-sm text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg">
+            {fill(s('notesCount'), { n: fmtNum(run.warnings.length, lang, 0) })}
+          </summary>
+          <h2 className="sr-only">{s('notes')}</h2>
+          <ul className="mt-2 space-y-2 text-xs leading-snug text-muted">
             {run.warnings.map((w) => (
               <li key={w}>{w}</li>
             ))}
           </ul>
-        </section>
+        </details>
       )}
 
       <div className="mt-6">
@@ -207,16 +208,23 @@ function Ready({ run, claims }: { run: Signals; claims: Claims | null }) {
           <h2 id="run-result" className="text-md">
             {s('result')}
           </h2>
-          <dl className="mt-3 grid grid-cols-2 gap-3">
+          <div className="mt-3">
+            <div className="text-xs text-muted">{s('annual')}</div>
+            <div
+              className={`num mt-1 text-4xl leading-none tabular-nums ${metrics.annual_return > 0 ? 'text-up' : metrics.annual_return < 0 ? 'text-down' : ''}`}
+            >
+              {fmtPct(metrics.annual_return, lang, 1)}
+            </div>
+          </div>
+          <dl className="mt-5 grid grid-cols-3 divide-x divide-line rtl:divide-x-reverse border-y border-line">
             {(
               [
-                [s('annual'), fmtPct(metrics.annual_return, lang, 1)],
                 [s('drawdown'), fmtPct(metrics.max_drawdown, lang, 1)],
                 [s('sharpe'), fmtNum(metrics.sharpe, lang, 2)],
                 ...(metrics.turnover === null ? [] : [[s('turnover'), fmtNum(metrics.turnover * 100, lang, 0, '%')]]),
               ] as [string, string][]
             ).map(([label, value]) => (
-              <div key={label} className="panel p-3">
+              <div key={label} className="px-3 py-3 first:ps-0">
                 <dt className="text-xs text-muted">{label}</dt>
                 <dd className="mt-1 text-lg tabular-nums">{value}</dd>
               </div>

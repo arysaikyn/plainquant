@@ -85,6 +85,9 @@
   /* An opaque mask stop is not a palette colour, but it still gets a name. */
   --mask-stop: #000;
 
+  /* Serif is for the user's own question on the Latin screens only: system faces, nothing shipped. */
+  --font-serif: ui-serif, "New York", Georgia, "Times New Roman", serif;
+
   --radius-card: 16px;
   --radius-bar: 20px;
 }
@@ -523,6 +526,10 @@ html[dir="rtl"] .fade-end {
 :focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+}
+/* A tabindex of -1 marks a target the app focuses itself (the page heading), not a control. */
+[tabindex="-1"]:focus-visible {
+  outline: none;
 }
 
 /* Keyboard users get a real door before the tab bar. */

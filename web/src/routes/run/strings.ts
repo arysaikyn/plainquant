@@ -43,6 +43,10 @@ export type RunStrings = {
   dataVersion: string
   engine: string
   notes: string
+  notesCount: string
+  example1: string
+  example2: string
+  example3: string
   askLabel: string
   askPlaceholder: string
   askButton: string
@@ -110,8 +114,12 @@ export const strings: Dict<RunStrings> = {
     dataVersion: '数据版本',
     engine: '引擎',
     notes: '注意',
+    notesCount: '{n} 条数据限制，点开查看',
+    example1: '负债低、股息高的公司',
+    example2: '过去六个月涨得最好的前 10 只',
+    example3: '符合 Sharia 的低波动股票',
     askLabel: '用你自己的话提问',
-    askPlaceholder: '低负债、高股息、符合 Sharia',
+    askPlaceholder: '负债低、股息高',
     askButton: '运行',
     asking: '处理中…',
     askInvalid: '模型没能把这句话变成引擎能运行的规则。换个说法再试。',
@@ -174,8 +182,12 @@ export const strings: Dict<RunStrings> = {
     dataVersion: 'Data',
     engine: 'Engine',
     notes: 'Notes',
+    notesCount: '{n} limits on the data. Tap to read.',
+    example1: 'Low debt and a high dividend',
+    example2: 'Top 10 by six-month momentum',
+    example3: 'Sharia-compliant, low volatility',
     askLabel: 'Ask in your own words',
-    askPlaceholder: 'Low debt, high dividend, Sharia-compliant',
+    askPlaceholder: 'Low debt, high dividend',
     askButton: 'Run',
     asking: 'Working…',
     askInvalid: 'The model could not turn this into rules the engine can run. Try saying it differently.',
@@ -238,8 +250,12 @@ export const strings: Dict<RunStrings> = {
     dataVersion: 'البيانات',
     engine: 'المحرك',
     notes: 'ملاحظات',
+    notesCount: '{n} قيود على البيانات. اضغط للقراءة.',
+    example1: 'ديون قليلة وتوزيعات عالية',
+    example2: 'أفضل 10 أسهم في الزخم لستة أشهر',
+    example3: 'متوافق مع الشريعة وتقلب منخفض',
     askLabel: 'اسأل بكلماتك',
-    askPlaceholder: 'ديون منخفضة، توزيعات مرتفعة، متوافق مع الشريعة',
+    askPlaceholder: 'ديون قليلة وتوزيعات عالية',
     askButton: 'شغّل',
     asking: 'جارٍ العمل…',
     askInvalid: 'تعذّر على النموذج تحويل هذا إلى قواعد يستطيع المحرك تشغيلها. جرّب صياغة أخرى.',

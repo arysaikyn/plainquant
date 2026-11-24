@@ -46,7 +46,7 @@ export function AskBox({ onRun }: { onRun: (outcome: RunOutcome) => void }) {
       <label htmlFor="run-ask" className="text-sm text-muted">
         {s('askLabel')}
       </label>
-      <div className="mt-1 flex items-center gap-2">
+      <div className="mt-2 flex items-center gap-1 rounded-full border border-line bg-surface p-1 ps-4 focus-within:border-fg/40">
         <input
           id="run-ask"
           type="text"
@@ -55,16 +55,30 @@ export function AskBox({ onRun }: { onRun: (outcome: RunOutcome) => void }) {
           onChange={(e) => setQuestion(e.target.value)}
           placeholder={s('askPlaceholder')}
           disabled={busy}
-          className="panel min-h-11 min-w-0 flex-1 px-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg"
+          className="min-h-11 min-w-0 flex-1 bg-transparent text-md outline-none placeholder:text-muted"
         />
         <button
           type="submit"
           disabled={busy || !question.trim()}
-          className="min-h-11 shrink-0 rounded-full border border-line px-4 text-sm active:bg-fg/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg disabled:opacity-50"
+          className="min-h-11 shrink-0 rounded-full bg-fg px-5 text-sm font-medium text-bg active:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg disabled:bg-fg/15 disabled:text-muted"
         >
           {busy ? s('asking') : s('askButton')}
         </button>
       </div>
+      <ul className="mt-3 flex flex-wrap gap-2">
+        {(['example1', 'example2', 'example3'] as const).map((key) => (
+          <li key={key}>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => setQuestion(s(key))}
+              className="min-h-9 rounded-full border border-line px-3 text-xs text-muted active:bg-fg/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg disabled:opacity-50"
+            >
+              {s(key)}
+            </button>
+          </li>
+        ))}
+      </ul>
       <p role="status" className="mt-2 text-sm leading-snug text-muted">
         {note}
       </p>
