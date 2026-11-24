@@ -41,6 +41,20 @@ export type RunStrings = {
   dataVersion: string
   engine: string
   notes: string
+  askLabel: string
+  askPlaceholder: string
+  askButton: string
+  asking: string
+  askInvalid: string
+  askUnavailable: string
+  askFailed: string
+  refusal_execution: string
+  refusal_guarantee: string
+  refusal_advice: string
+  explanation: string
+  explanationNote: string
+  claimsDropped: string
+  claimsError: string
   // One key per factor the engine registers; an id with no key is shown as itself.
   factor_debt_ratio: string
   factor_dividend_yield: string
@@ -92,6 +106,20 @@ export const strings: Dict<RunStrings> = {
     dataVersion: '数据版本',
     engine: '引擎',
     notes: '注意',
+    askLabel: '用你自己的话提问',
+    askPlaceholder: '低负债、高股息、符合 Sharia',
+    askButton: '运行',
+    asking: '处理中…',
+    askInvalid: '模型没能把这句话变成引擎能运行的规则。换个说法再试。',
+    askUnavailable: '这台服务器还没有设置提问功能。',
+    askFailed: '这个问题没有得到回答，请重试。',
+    refusal_execution: '这个工具不下单。请描述你想测试的规则。',
+    refusal_guarantee: '没有任何策略能保证结果。请描述你想测试的规则。',
+    refusal_advice: '这个工具不说该买还是该卖。请描述你想测试的规则。',
+    explanation: '文字说明',
+    explanationNote: '文字由模型写成，其中每个数字都来自下面的结果。',
+    claimsDropped: '有 {n} 句因为自带数字而被略去。',
+    claimsError: '说明没能写成。运行结果在下面。',
     factor_debt_ratio: '负债率',
     factor_dividend_yield: '股息率',
     factor_momentum_6m: '6 个月动量',
@@ -140,6 +168,20 @@ export const strings: Dict<RunStrings> = {
     dataVersion: 'Data',
     engine: 'Engine',
     notes: 'Notes',
+    askLabel: 'Ask in your own words',
+    askPlaceholder: 'Low debt, high dividend, Sharia-compliant',
+    askButton: 'Run',
+    asking: 'Working…',
+    askInvalid: 'The model could not turn this into rules the engine can run. Try saying it differently.',
+    askUnavailable: 'Questions are not set up on this server yet.',
+    askFailed: 'The question could not be answered. Try again.',
+    refusal_execution: 'This tool does not place orders. Describe the rules you want to test instead.',
+    refusal_guarantee: 'No strategy has a guaranteed result. Describe the rules you want to test instead.',
+    refusal_advice: 'This tool does not say what to buy or sell. Describe the rules you want to test instead.',
+    explanation: 'In words',
+    explanationNote: 'The model wrote the words. Every number in them comes from the result below.',
+    claimsDropped: '{n} sentences were left out because they carried a number of their own.',
+    claimsError: 'The explanation could not be written. The run itself is below.',
     factor_debt_ratio: 'Debt ratio',
     factor_dividend_yield: 'Dividend yield',
     factor_momentum_6m: '6-month momentum',
@@ -188,6 +230,20 @@ export const strings: Dict<RunStrings> = {
     dataVersion: 'البيانات',
     engine: 'المحرك',
     notes: 'ملاحظات',
+    askLabel: 'اسأل بكلماتك',
+    askPlaceholder: 'ديون منخفضة، توزيعات مرتفعة، متوافق مع الشريعة',
+    askButton: 'شغّل',
+    asking: 'جارٍ العمل…',
+    askInvalid: 'تعذّر على النموذج تحويل هذا إلى قواعد يستطيع المحرك تشغيلها. جرّب صياغة أخرى.',
+    askUnavailable: 'لم يُهيَّأ هذا الخادم للأسئلة بعد.',
+    askFailed: 'تعذّرت الإجابة عن السؤال. حاول مرة أخرى.',
+    refusal_execution: 'لا تنفّذ هذه الأداة أوامر. صِف القواعد التي تريد اختبارها.',
+    refusal_guarantee: 'لا توجد استراتيجية نتيجتها مضمونة. صِف القواعد التي تريد اختبارها.',
+    refusal_advice: 'لا تقول هذه الأداة ماذا تشتري أو تبيع. صِف القواعد التي تريد اختبارها.',
+    explanation: 'بالكلمات',
+    explanationNote: 'كتب النموذج الكلمات. كل رقم فيها يأتي من النتيجة أدناه.',
+    claimsDropped: 'حُذفت جمل بعدد {n} لأنها حملت أرقامًا خاصة بها.',
+    claimsError: 'تعذّرت كتابة الشرح. نتيجة التشغيل أدناه.',
     factor_debt_ratio: 'نسبة الدين',
     factor_dividend_yield: 'عائد التوزيعات',
     factor_momentum_6m: 'الزخم لستة أشهر',

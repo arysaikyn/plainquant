@@ -6,6 +6,7 @@ are exposed; everything else is a 404, so this cannot become an open proxy.
 
 from __future__ import annotations
 
+import asyncio
 import os
 import re
 from collections.abc import AsyncIterator
@@ -16,6 +17,8 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+
+import engine
 
 UPSTREAM = os.getenv("VIBE_API_URL", "http://127.0.0.1:8899").rstrip("/")
 UPSTREAM_KEY = os.getenv("VIBE_API_KEY", "")
@@ -201,6 +204,31 @@ async def signals() -> Response:
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="No run yet") from None
     return Response(content=body, media_type="application/json", headers={"Cache-Control": "no-cache"})
+
+
+@app.post("/api/engine/ask")
+async def engine_ask(request: Request) -> JSONResponse:
+    """A question in, a run and its explanation out. See engine.py."""
+    try:
+        body = await request.json()
+    except ValueError:
+        raise HTTPException(status_code=422, detail="the body must be JSON") from None
+    question = body.get("question") if isinstance(body, dict) else None
+    if not isinstance(question, str):
+        raise HTTPException(status_code=422, detail="question must be a string")
+    try:
+        reply = await asyncio.to_thread(engine.answer, question, SIGNALS_PATH)
+    except engine.NotConfigured as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from None
+    except engine.ProviderError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from None
+    except ImportError:
+        raise HTTPException(status_code=503, detail="jsonschema is not installed") from None
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from None
+    if "problems" in reply:
+        return JSONResponse(status_code=422, content={"detail": "the model could not write a valid spec", **reply})
+    return JSONResponse(content=reply)
 
 
 WEB_DIST = Path(os.getenv("WEB_DIST", Path(__file__).resolve().parent.parent / "web" / "dist"))

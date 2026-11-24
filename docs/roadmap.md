@@ -32,7 +32,7 @@ nowhere else.
 | 2 | Engine is trustworthy on real data | in progress | Fill lag, tradability and costs are modelled and tested; the audit false-positive rate is a number; run time is a number. |
 | 3 | Sharia that works | not started | `compliant_only` returns a non-empty real result that matches a public list on at least 30 names. |
 | 4 | Saudi Arabia | blocked | A real `sa` run. Blocked on a data licence. |
-| 5 | Agent live | not started | Three languages from the UI to a result and an explanation; eval numbers recorded; reproduction works. |
+| 5 | Agent live | in progress | Three languages from the UI to a result and an explanation; eval numbers recorded; reproduction works. The route, the screen and their tests exist; no key has been used yet. |
 | 6 | Other screens read results | not started | No screen reads mock data unless labelled. The user picks the plan first. |
 | 7 | Product completeness | not started | Disclaimers reviewed, warnings coded and translated, refresh job, runbook. Licence and regulatory questions answered. |
 | 8 | Release hygiene | not started | e2e and the design gate run in CI; deprecated dependencies replaced. |
@@ -47,7 +47,7 @@ nowhere else.
 
 **4 Saudi Arabia.** Ask the Saudi Exchange and Argaam in writing about licence terms. Check the market rules from two sources each (price limit, settlement, lot, trading days, Ramadan hours). Add `sa` to `model/markets.py`. Write the adapter. Run one spec on `cn_a` and on `sa`.
 
-**5 Agent.** `POST /api/engine/ask`: question, spec, run, claims. Declare `jsonschema` in `backend/pyproject.toml`. Cache runs on spec hash and data version. Implement `complete()`. Grow the eval to about 40 questions in three languages, including advice, orders, guarantees and injected instructions. Proposed targets: valid specs 95%, correct 80%, refusals 100%. Render claims in the web app. Add `python3 -m model verify` and a reproduce control on `/run`; archive snapshots by data version.
+**5 Agent.** Done: `POST /api/engine/ask` (question, spec, run, claims), `jsonschema` declared, `complete()` for the Anthropic API, the ask box and the explanation on `/run`, all tested with a scripted model. To do: run the eval with a key, regenerate `uv.lock`, cache runs only if a measurement asks for it. Grow the eval to about 40 questions in three languages, including advice, orders, guarantees and injected instructions. Proposed targets: valid specs 95%, correct 80%, refusals 100%. Render claims in the web app. Add `python3 -m model verify` and a reproduce control on `/run`; archive snapshots by data version.
 
 **6 Screens.** If the user chooses a rebuild: add the exclusion funnel, the gross curve, the trial count and the Sharia check detail to the Result; store saved runs; rebuild `StrategyDetail`, the Screener, compare and report on results; delete the TypeScript copies and `test_shared_facts.py`; derive the e2e route lists from `screens.ts`.
 

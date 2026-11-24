@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { BackButton } from '../../components/BackButton'
 import { GridCheck } from '../../components/GridCheck'
 import { Screen } from '../../components/Screen'
@@ -8,9 +8,14 @@ import { fill, isolate } from '../../i18n/format'
 import { fetchSignals } from '../../api/signals'
 import type { Sharia, Signals } from '../../api/signals'
 import { Sparkline } from '../ai/Sparkline'
+import type { Segment } from '../../api/ask'
+import { AskBox } from './AskBox'
+import type { RunOutcome } from './AskBox'
+import { claimValue } from './claims'
 import { strings } from './strings'
 import type { RunStrings } from './strings'
 
+type Claims = { segments: Segment[][]; dropped: number; error?: string }
 type State = { kind: 'loading' } | { kind: 'empty' } | { kind: 'error' } | { kind: 'ready'; run: Signals }
 
 const OP = { lt: '<', lte: '≤', gt: '>', gte: '≥' } as const
@@ -24,6 +29,7 @@ export default function RunPage() {
   const s = useStrings<RunStrings>(strings)
   const [state, setState] = useState<State>({ kind: 'loading' })
   const [tick, setTick] = useState(0)
+  const [claims, setClaims] = useState<Claims | null>(null)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -39,6 +45,13 @@ export default function RunPage() {
     <Screen title={s('title')} leading={<BackButton fallback="/strategy" />}>
       <div className="pt-4">
         <p className="text-md leading-relaxed text-muted">{s('lead')}</p>
+
+        <AskBox
+          onRun={(outcome: RunOutcome) => {
+            setState({ kind: 'ready', run: outcome.run })
+            setClaims({ segments: outcome.claims, dropped: outcome.dropped, error: outcome.claimsError })
+          }}
+        />
 
         {state.kind === 'loading' && (
           <div className="mt-5" aria-busy="true" aria-label={s('loading')}>
@@ -68,7 +81,7 @@ export default function RunPage() {
           </div>
         )}
 
-        {state.kind === 'ready' && <Ready run={state.run} />}
+        {state.kind === 'ready' && <Ready run={state.run} claims={claims} />}
       </div>
     </Screen>
   )
@@ -76,7 +89,7 @@ export default function RunPage() {
 }
 
 
-function Ready({ run }: { run: Signals }) {
+function Ready({ run, claims }: { run: Signals; claims: Claims | null }) {
   const { lang } = useI18n()
   const s = useStrings<RunStrings>(strings)
   const factorLabel = (id: string) => (strings[lang] as Record<string, string>)[`factor_${id}`] ?? id
@@ -115,6 +128,34 @@ function Ready({ run }: { run: Signals }) {
       <div className="mt-6">
         <GridCheck report={run.grid} />
       </div>
+
+      {claims && (claims.segments.length > 0 || claims.error) && (
+        <section className="mt-6 border-t border-line pt-5" aria-labelledby="run-explain">
+          <h2 id="run-explain" className="text-md">
+            {s('explanation')}
+          </h2>
+          {claims.segments.length > 0 && (
+            <>
+              <p className="mt-1 text-xs text-muted">{s('explanationNote')}</p>
+              <ul className="mt-2 space-y-2 text-sm leading-snug">
+                {claims.segments.map((parts, i) => (
+                  <li key={i}>
+                    {parts.map((part, j) => (
+                      <Fragment key={j}>
+                        {'text' in part ? part.text : <span className="tabular-nums">{claimValue(part.ref, part.value, lang)}</span>}
+                      </Fragment>
+                    ))}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          {claims.dropped > 0 && (
+            <p className="mt-2 text-xs text-muted">{fill(s('claimsDropped'), { n: fmtNum(claims.dropped, lang, 0) })}</p>
+          )}
+          {claims.error && <p className="mt-2 text-xs text-muted">{s('claimsError')}</p>}
+        </section>
+      )}
 
       <section className="mt-6 border-t border-line pt-5" aria-labelledby="run-rules">
         <h2 id="run-rules" className="text-md">

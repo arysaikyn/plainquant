@@ -81,6 +81,7 @@ same-origin backend.
 | GET | `/api/ai/scheduled-runs` | `/scheduled-runs` |
 | GET | `/api/ai/settings/llm` | `/settings/llm` |
 | POST | `/api/ai/upload` | `/upload` |
+| POST | `/api/engine/ask` | none: `{question}` in; a spec from the model, a run of the engine, an explanation out. Needs `ANTHROPIC_API_KEY` and a snapshot; see `docs/architecture.md`, "The ask path" |
 | GET | `/api/engine/signals` | none: reads `model/signals.json` (or `SIGNALS_PATH`); 404 until the engine has written a run |
 
 Anything else is `404`; this is not an open proxy.

@@ -85,11 +85,12 @@ untraced and the UI already marks them so. It is a research assistant, not the e
   as zero, because an exact fit leaves rounding noise in it. `model/tests/test_audit_noise.py`
   pins this. Not done: the points (30, 25, 10, 20) and the 0.35, 0.6, 55, 25 cut-offs are
   still hand-set, and no real grid strategy was available to tune them against.
-- **No model has been run against `agent/`.** The boundary is tested with scripted replies;
-  whether a real model writes valid specs from the prompt is unmeasured, and that is what
-  the eval is for. `agent/` needs `jsonschema` at runtime; it is declared nowhere yet and
-  belongs in `backend/pyproject.toml` when the backend imports it. Nothing in `backend/` or
-  `web/` calls `agent/` yet.
+- **No real model has been run against `agent/`.** The boundary is tested with scripted
+  replies; whether a real model writes valid specs from the prompt is unmeasured, and that is
+  what the eval is for. The ask path (below) is built and tested with a scripted model; it
+  has not been run with a key. The `jsonschema` library is declared in
+  `backend/pyproject.toml`, but `backend/uv.lock` was not regenerated (`uv` is not installed
+  here): run `uv lock` before relying on the lock file.
 - `agent/spec.py` holds the defaults for a silent question (fee 0.0015, slippage 0.005,
   top 10) and the three refusal names. `web/src` holds a second copy of the fee and
   slippage, of the refusal names and of the AAOIFI caps. `model/tests/test_shared_facts.py`
@@ -167,6 +168,31 @@ found. Use it for local research only. `python3 -m data.check` reports what is w
 snapshot (calendar holes, price jumps, names with no report, debt ratios outside 0 to 1,
 months with too few members); its calendar threshold is 14 days, set from the closures
 measured in 2019 to 2024 (11 days at most).
+
+## The ask path
+
+`POST /api/engine/ask {question}` (`backend/engine.py`) is the product's main line: the
+question goes to `agent/spec.py`, which has the model write a spec (validated against the
+schema, the factor registry and the snapshot's universe and market; two repairs; or a
+refusal for an order, a guarantee or a pick); the engine runs it on the snapshot in
+`SNAPSHOT_DIR` (default `data/raw/csi300`); the result is written to `SIGNALS_PATH`, so the
+`/run` screen and `GET /api/engine/signals` show the latest run; `agent/claims.py` has the
+model explain it as sentences with slots.
+
+- Answers: 200 with `{result, claims, dropped}`, or `{refusal}`; 422 with `{problems}` when
+  the model could not write a valid spec, and 422 for an empty or over-long question (500
+  characters; checked before the server's own setup); 502 when the model service fails; 503
+  when there is no key, no snapshot or no `jsonschema`.
+- The key is `ANTHROPIC_API_KEY`, read in `engine.py` only. It is never in a response, a log
+  or an error message. `ENGINE_MODEL` picks the model; the default is `claude-haiku-5-5`, a
+  cheap choice the eval has not measured.
+- One run at a time (a lock); the run is off the event loop. If only the explanation fails,
+  the run is kept and `claims_error` says so.
+- On `/run` a question box sends the question and replaces the screen with the run. The
+  explanation is segments; the screen formats each value with the number formatter, so a
+  number the reader sees is the engine's. It sits after the grid check and before the result.
+- Not built: caching runs on spec hash and data version (a run takes about a second, so it
+  waits for a measurement), a reproduce control, and the AI tab's move to this path.
 
 ## Wiring the web app
 
