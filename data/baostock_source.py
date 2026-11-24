@@ -25,7 +25,11 @@ are written into the snapshot as `limitations`, and every Result run on it repea
 from __future__ import annotations
 
 import argparse
+import json
 import sys
+import time
+from datetime import datetime
+from pathlib import Path
 from bisect import bisect_right
 from datetime import date, timedelta
 
@@ -237,7 +241,34 @@ def fetch_name(bs, code: str, start: str, end: str, years: range, quality: Quali
     raise SourceError(f"{code}: {TRIES} tries failed, last: {last}")
 
 
-def build(bs, start: str, end: str, limit: int | None = None, log=lambda text: None) -> Snapshot:
+def _load_cached(path: Path):
+    """One name saved by `_save`, or None when it was never fetched."""
+    if not path.exists():
+        return None
+    got = json.loads(path.read_text(encoding="utf-8"))
+    rows = [(day, row) for day, row in got["rows"]]
+    return got["adjusted"], rows, got["sector"], got["quality"]
+
+
+def _save(path: Path, adjusted, rows, sector, quality: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(json.dumps({"adjusted": adjusted, "rows": rows, "sector": sector, "quality": quality}), encoding="utf-8")
+    tmp.replace(path)  # a kill mid-write leaves no half file under the final name
+
+
+def build(
+    bs,
+    start: str,
+    end: str,
+    limit: int | None = None,
+    log=lambda text: None,
+    cache: Path | None = None,
+    pause=time.sleep,
+) -> Snapshot:
+    """`cache` is a directory that holds one file per fetched name. A run that dies resumes
+    from it: a name already there is not asked for again. Names that failed are retried once
+    more at the end, after a pause."""
     first, last = date.fromisoformat(start).year, date.fromisoformat(end).year
     years = range(first - 1, last + 1)  # the report published before `start` still matters
 
@@ -258,23 +289,59 @@ def build(bs, start: str, end: str, limit: int | None = None, log=lambda text: N
     facts: dict[str, list] = {}
     names: dict[str, str] = {}
     sectors: dict[str, str] = {}
-    failed: list[str] = []
-    for n, (code, name) in enumerate(pairs, start=1):
-        try:
-            got = fetch_name(bs, code, start, end, years, quality)
-        except SourceError as exc:
-            failed.append(code)
-            log(f"FAILED {code}: {exc}")
-            continue
-        if got is None:
-            log(f"skip {code}: no traded days in the window")
-            continue
+    failed: list[tuple[str, str]] = []
+
+    def take(code: str, name: str, got, label: str) -> None:
         adjusted, rows, sector = got
         sym = symbol(code)
         prices[sym], names[sym], facts[sym] = adjusted, name, rows
         if sector:
             sectors[sym] = sector
-        log(f"{n}/{len(pairs)} {sym} {len(adjusted)} days, {len(rows)} fact rows")
+        log(f"{label} {sym} {len(adjusted)} days, {len(rows)} fact rows")
+
+    def fetch(code: str, name: str, label: str) -> bool:
+        path = cache / f"{code}.json" if cache else None
+        saved = _load_cached(path) if path else None
+        if saved:
+            adjusted, rows, sector, counts = saved
+            quality.reports += counts["reports"]
+            quality.disagreements += counts["disagreements"]
+            quality.skipped += counts["skipped"]
+            take(code, name, (adjusted, rows, sector), f"{label} cached")
+            return True
+        one = Quality()
+        try:
+            got = fetch_name(bs, code, start, end, years, one)
+        except SourceError as exc:
+            log(f"FAILED {code}: {exc}")
+            return False
+        if got is None:
+            log(f"skip {code}: no traded days in the window")
+            return True
+        counts = {"reports": one.reports, "disagreements": one.disagreements, "skipped": one.skipped}
+        quality.reports += one.reports
+        quality.disagreements += one.disagreements
+        quality.skipped += one.skipped
+        if path:
+            _save(path, got[0], got[1], got[2], counts)
+        take(code, name, got, label)
+        return True
+
+    for n, (code, name) in enumerate(pairs, start=1):
+        if not fetch(code, name, f"{n}/{len(pairs)}"):
+            failed.append((code, name))
+    if failed:
+        log(f"{len(failed)} names failed; retrying them once after a pause")
+        pause(60)
+        bs.logout()
+        bs.login()
+        failed = [(c, n) for c, n in failed if not fetch(c, n, "retry")]
+    failed_codes = [c for c, _ in failed]
+    sample = (
+        [f"Sample only: {len(pairs)} of the {len(called)} names that were ever CSI 300 members, taken in the order the source listed them. This is not the index."]
+        if len(pairs) < len(called)
+        else []
+    )
 
     return Snapshot(
         version="",
@@ -287,8 +354,9 @@ def build(bs, start: str, end: str, limit: int | None = None, log=lambda text: N
         names=names,
         sectors=sectors,
         limitations=LIMITATIONS
+        + sample
         + ([quality.sentence()] if quality.sentence() else [])
-        + ([f"{len(failed)} names could not be fetched after {TRIES} tries and are missing: {', '.join(failed)}."] if failed else []),
+        + ([f"{len(failed_codes)} names could not be fetched after {TRIES} tries, twice, and are missing: {', '.join(failed_codes)}."] if failed_codes else []),
     )
 
 
@@ -297,6 +365,7 @@ def main(argv: list[str] | None = None, bs=None) -> int:
     ap.add_argument("--out", required=True, help="snapshot directory to write (use data/raw/...)")
     ap.add_argument("--start", default="2019-01-01")
     ap.add_argument("--end", default="2024-12-31")
+    ap.add_argument("--cache", help="directory for one file per fetched name; a rerun with the same directory resumes (default: OUT.partial)")
     ap.add_argument("--limit", type=int, help="fetch only the first N constituents (a quick trial)")
     args = ap.parse_args(argv)
     if bs is None:
@@ -306,7 +375,9 @@ def main(argv: list[str] | None = None, bs=None) -> int:
         print(f"data: login failed: {login.error_code} {login.error_msg}", file=sys.stderr)
         return 2
     try:
-        snap = build(bs, args.start, args.end, args.limit, log=lambda text: print(text, file=sys.stderr))
+        cache = Path(args.cache or f"{args.out.rstrip('/')}.partial")
+        stamp = lambda text: print(f"{datetime.now():%H:%M:%S} {text}", file=sys.stderr, flush=True)  # noqa: E731
+        snap = build(bs, args.start, args.end, args.limit, log=stamp, cache=cache)
     except SourceError as exc:
         print(f"data: {exc}", file=sys.stderr)
         return 2

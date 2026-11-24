@@ -21,6 +21,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+from collections.abc import Iterable
 from pathlib import Path
 
 from .run import canonical
@@ -34,11 +35,11 @@ def _num(text: str) -> float | None:
     return float(text) if text != "" else None
 
 
-def _write(path: Path, header: list[str], rows: list[list]) -> None:
+def _write(path: Path, header: list[str], rows: Iterable[list]) -> None:
     with path.open("w", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh, lineterminator="\n")
         w.writerow(header)
-        w.writerows([["" if v is None else v for v in row] for row in rows])
+        w.writerows(["" if v is None else v for v in row] for row in rows)  # a generator: no full copy in memory
 
 
 def version_of(manifest: dict) -> str:
@@ -53,17 +54,17 @@ def write(snap: Snapshot, directory: str | Path) -> str:
     _write(
         out / "prices.csv",
         ["symbol", "date", "close"],
-        [[s, d, repr(p)] for s in sorted(snap.prices) for d, p in sorted(snap.prices[s].items())],
+        ([s, d, repr(p)] for s in sorted(snap.prices) for d, p in sorted(snap.prices[s].items())),
     )
     _write(
         out / "facts.csv",
         ["symbol", "announce_date", "key", "value"],
-        [
+        (
             [s, d, k, None if v is None else repr(v)]
             for s in sorted(snap.facts)
             for d, row in snap.facts[s]
             for k, v in sorted(row.items())
-        ],
+        ),
     )
     _write(
         out / "membership.csv",

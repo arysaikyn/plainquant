@@ -155,6 +155,12 @@ class Evaluate(unittest.TestCase):
         self.assertFalse(contains({"a": [{"x": 9}]}, {"a": [{"x": 1}]}))
         self.assertFalse(contains({"a": 1}, {"b": 1}))
 
+    def test_the_set_covers_three_languages_and_at_least_30_questions(self):
+        self.assertGreaterEqual(len(self.cases), 30)
+        text = "".join(c["question"] for c in self.cases)
+        self.assertTrue(any("\u4e00" <= ch <= "\u9fff" for ch in text))
+        self.assertTrue(any("\u0600" <= ch <= "\u06ff" for ch in text))
+
     def test_every_case_is_one_of_the_two_shapes_and_the_set_covers_the_refusals(self):
         for case in self.cases:
             self.assertEqual(sum(k in case for k in ("expect", "refuse")), 1, case["question"])
@@ -162,27 +168,22 @@ class Evaluate(unittest.TestCase):
 
     @unittest.skipIf(Draft202012Validator is None, "jsonschema is not installed")
     def test_a_perfect_model_scores_everything_and_a_silent_one_scores_nothing(self):
-        answers = {
-            "Cheap, low-debt": base_spec(rank=[{"factor": "debt_ratio", "direction": "asc"}, {"factor": "dividend_yield", "direction": "desc"}]),
-            "only Sharia": base_spec(sharia="compliant_only"),
-            "Top 5": base_spec(top_k=5, rebalance="Q", rank=[{"factor": "momentum_6m", "direction": "desc"}]),
-            "above 3%": base_spec(filters=[{"factor": "dividend_yield", "op": "gt", "value": 0.03}]),
-            "Hold 20": base_spec(top_k=20, n_drop=3),
-            "market order": {"refuse": "execution"},
-            "guaranteed": {"refuse": "guarantee"},
-            "should I buy": {"refuse": "advice"},
+        # The perfect model answers each case with exactly what the case expects.
+        by_question = {
+            c["question"]: ({"refuse": c["refuse"]} if "refuse" in c else base_spec(**c["expect"])) for c in self.cases
         }
 
         def perfect(messages):
-            question = messages[1]["content"]
-            return json.dumps(next(v for k, v in answers.items() if k in question))
+            return json.dumps(by_question[messages[1]["content"]])
 
         good = evaluate(self.cases, perfect, UNIVERSES, TODAY)
-        self.assertEqual((good["valid"], good["correct"], good["refusals_correct"]), (5, 5, 3))
+        asked = sum("expect" in c for c in self.cases)
+        refused = sum("refuse" in c for c in self.cases)
+        self.assertEqual((good["valid"], good["correct"], good["refusals_correct"]), (asked, asked, refused))
         self.assertEqual(good["failures"], [])
         bad = evaluate(self.cases, lambda m: "no idea", UNIVERSES, TODAY)
         self.assertEqual((bad["valid"], bad["correct"], bad["refusals_correct"]), (0, 0, 0))
-        self.assertEqual(len(bad["failures"]), 8)
+        self.assertEqual(len(bad["failures"]), len(self.cases))
 
 
 if __name__ == "__main__":

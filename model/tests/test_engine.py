@@ -195,18 +195,18 @@ class Tradability(unittest.TestCase):
 
     def test_a_suspended_name_is_not_bought_and_its_slot_stays_empty(self):
         self.suspend("S002")
-        self.assertEqual(tradable_book(self.snap, [], ["S001", "S002", "S003"], self.day), ["S001", "S003"])
+        self.assertEqual(tradable_book(self.snap, "cn_a", [], ["S001", "S002", "S003"], self.day), ["S001", "S003"])
 
     def test_a_suspended_name_that_should_be_sold_is_kept(self):
         self.suspend("S001")
-        self.assertEqual(tradable_book(self.snap, ["S001", "S002"], ["S002", "S003"], self.day), ["S002", "S003", "S001"])
+        self.assertEqual(tradable_book(self.snap, "cn_a", ["S001", "S002"], ["S002", "S003"], self.day), ["S002", "S003", "S001"])
 
     def test_a_suspended_name_already_held_and_still_wanted_stays_once(self):
         self.suspend("S001")
-        self.assertEqual(tradable_book(self.snap, ["S001"], ["S001", "S002"], self.day), ["S001", "S002"])
+        self.assertEqual(tradable_book(self.snap, "cn_a", ["S001"], ["S001", "S002"], self.day), ["S001", "S002"])
 
     def test_when_nothing_is_suspended_the_book_is_the_target(self):
-        self.assertEqual(tradable_book(self.snap, ["S001"], ["S002", "S003"], self.day), ["S002", "S003"])
+        self.assertEqual(tradable_book(self.snap, "cn_a", ["S001"], ["S002", "S003"], self.day), ["S002", "S003"])
 
     def test_the_best_name_suspended_on_the_first_fill_day_is_not_in_the_first_book(self):
         snap = make_snapshot()
@@ -218,6 +218,61 @@ class Tradability(unittest.TestCase):
         books = run_backtest(s, snap)["books"]
         self.assertNotIn(best, books[0])
         self.assertEqual(len(books[0]), 2)
+
+
+class PriceLimits(unittest.TestCase):
+    """A name that closes at its daily limit cannot be bought up, or sold down."""
+
+    def setUp(self):
+        self.snap = make_snapshot(n=6)
+        self.day = "2021-03-03"
+        i = self.snap.dates.index(self.day)
+        self.before = self.snap.dates[i - 1]
+        # The synthetic symbols start with "S", so give the market a 10% limit for them.
+        limited = dataclasses.replace(markets.MARKETS["cn_a"], limits=((("S",), "0000-01-01", 0.10),))
+        patch = mock.patch.dict(markets.MARKETS, {"cn_a": limited})
+        patch.start()
+        self.addCleanup(patch.stop)
+
+    def move(self, name, ret):
+        self.snap.prices[name][self.day] = self.snap.prices[name][self.before] * (1 + ret)
+        self.snap.__post_init__()
+
+    def book(self, held, target):
+        return tradable_book(self.snap, "cn_a", held, target, self.day)
+
+    def test_a_name_at_its_up_limit_is_not_bought(self):
+        self.move("S002", 0.10)
+        self.assertEqual(self.book([], ["S001", "S002", "S003"]), ["S001", "S003"])
+
+    def test_the_up_limit_does_not_stop_a_sale(self):
+        self.move("S001", 0.10)
+        self.assertEqual(self.book(["S001"], ["S002"]), ["S002"])
+
+    def test_a_name_at_its_down_limit_cannot_be_sold(self):
+        self.move("S001", -0.10)
+        self.assertEqual(self.book(["S001", "S002"], ["S002", "S003"]), ["S002", "S003", "S001"])
+
+    def test_the_down_limit_does_not_stop_a_purchase(self):
+        self.move("S002", -0.10)
+        self.assertEqual(self.book([], ["S002"]), ["S002"])
+
+    def test_a_rise_clearly_below_the_limit_is_bought(self):
+        self.move("S002", 0.08)
+        self.assertEqual(self.book([], ["S002"]), ["S002"])
+
+    def test_a_price_tick_below_the_limit_still_counts_as_the_limit(self):
+        self.move("S002", 0.097)
+        self.assertEqual(self.book([], ["S002"]), [])
+
+
+class BoardLimits(unittest.TestCase):
+    def test_limits_by_board_and_date(self):
+        self.assertEqual(markets.price_limit("cn_a", "600519.SH", "2024-01-02"), 0.10)
+        self.assertEqual(markets.price_limit("cn_a", "688981.SH", "2024-01-02"), 0.20)
+        self.assertEqual(markets.price_limit("cn_a", "300750.SZ", "2020-08-21"), 0.10)
+        self.assertEqual(markets.price_limit("cn_a", "300750.SZ", "2020-08-24"), 0.20)
+        self.assertIsNone(markets.price_limit("cn_a", "S001", "2024-01-02"))
 
 
 class SellTax(unittest.TestCase):
@@ -255,7 +310,7 @@ class SellTax(unittest.TestCase):
 
     def test_the_market_note_says_stamp_duty_and_suspension_are_modelled(self):
         text = markets.warning("cn_a")
-        self.assertTrue(text.startswith("Not modelled for cn_a: T+1 settlement, daily price limits, 100-share board lots."))
+        self.assertTrue(text.startswith("Not modelled for cn_a: T+1 settlement, the 5% limit of ST names, 100-share board lots."))
         self.assertIn("suspended", text)
         self.assertIn("Stamp duty on sales", text)
 
@@ -306,7 +361,7 @@ class Run(unittest.TestCase):
 
     def test_every_result_says_what_the_market_model_leaves_out(self):
         warnings = run(spec(), self.snap, "q", NOW)["warnings"]
-        self.assertIn("Not modelled for cn_a: T+1 settlement, daily price limits, 100-share board lots.", warnings[0])
+        self.assertIn("Not modelled for cn_a: T+1 settlement, the 5% limit of ST names, 100-share board lots.", warnings[0])
 
     def test_the_known_limits_of_the_data_are_repeated_in_every_result(self):
         snap = make_snapshot()

@@ -222,9 +222,62 @@ class DroppedConnection(unittest.TestCase):
 
     def test_a_name_that_never_answers_is_skipped_and_named_in_the_limitations(self):
         bs = self.flaky({"sh.600002": 99})
-        snap = src.build(bs, "2019-01-01", "2019-12-31")
+        snap = src.build(bs, "2019-01-01", "2019-12-31", pause=lambda s: None)
         self.assertEqual(sorted(snap.prices), ["600000.SH", "600001.SH"])
-        self.assertTrue(any("1 names could not be fetched after 3 tries and are missing: sh.600002" in t for t in snap.limitations))
+        self.assertTrue(any("1 names could not be fetched after 3 tries, twice, and are missing: sh.600002" in t for t in snap.limitations))
+
+    def test_a_name_that_fails_all_tries_is_asked_again_once_at_the_end_after_a_pause(self):
+        pauses = []
+        snap = src.build(self.flaky({"sh.600001": 3}), "2019-01-01", "2019-12-31", pause=pauses.append)
+        self.assertEqual(pauses, [60])
+        self.assertIn("600001.SH", snap.prices)
+        self.assertFalse(any("could not be fetched" in t for t in snap.limitations))
+
+
+class SampleNotice(unittest.TestCase):
+    def test_a_limited_build_says_it_is_a_sample_and_a_full_one_does_not(self):
+        part = src.build(FakeBs(4), "2019-01-01", "2019-12-31", limit=2)
+        whole = src.build(FakeBs(4), "2019-01-01", "2019-12-31")
+        self.assertTrue(any(t.startswith("Sample only: 2 of the 4 names") for t in part.limitations))
+        self.assertFalse(any(t.startswith("Sample only") for t in whole.limitations))
+
+
+class Resume(unittest.TestCase):
+    """A run that dies keeps what it fetched."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.cache = Path(self.tmp.name) / "partial"
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_a_rerun_asks_the_source_only_for_names_not_yet_saved(self):
+        class Counting(FakeBs):
+            asked = []
+
+            def query_history_k_data_plus(self, code, *a, **k):
+                Counting.asked.append(code)
+                return super().query_history_k_data_plus(code, *a, **k)
+
+        src.build(Counting(3), "2019-01-01", "2019-12-31", limit=2, cache=self.cache)
+        first_run = set(Counting.asked)
+        Counting.asked.clear()
+        resumed = src.build(Counting(3), "2019-01-01", "2019-12-31", cache=self.cache)
+        self.assertEqual(len(first_run), 2)
+        self.assertEqual(set(Counting.asked), {"sh.600002"})
+        self.assertEqual(sorted(resumed.prices), ["600000.SH", "600001.SH", "600002.SH"])
+
+    def test_a_resumed_snapshot_equals_one_built_in_a_single_run(self):
+        whole = src.build(FakeBs(3), "2019-01-01", "2019-12-31")
+        src.build(FakeBs(3), "2019-01-01", "2019-12-31", limit=1, cache=self.cache)
+        resumed = src.build(FakeBs(3), "2019-01-01", "2019-12-31", cache=self.cache)
+        a, b = Path(self.tmp.name) / "a", Path(self.tmp.name) / "b"
+        self.assertEqual(store.write(whole, a), store.write(resumed, b))
+
+    def test_saving_leaves_no_temporary_file_under_the_cache(self):
+        src.build(FakeBs(2), "2019-01-01", "2019-12-31", cache=self.cache)
+        self.assertEqual(sorted(p.suffix for p in self.cache.iterdir()), [".json", ".json"])  # no ".tmp" left
 
 
 class SamePublicationDay(unittest.TestCase):
