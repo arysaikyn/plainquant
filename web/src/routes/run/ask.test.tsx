@@ -40,6 +40,22 @@ describe('the ask box on the run screen', () => {
     fetchSignals.mockReset().mockResolvedValue(EXAMPLE)
   })
 
+  it('fills the box from an example question and does not send it by itself', async () => {
+    show()
+    await screen.findByText(EXAMPLE.query)
+    fireEvent.click(screen.getByRole('button', { name: 'Top 10 by six-month momentum' }))
+    expect(box().value).toBe('Top 10 by six-month momentum')
+    expect(askEngine).not.toHaveBeenCalled()
+  })
+
+  it('keeps the data limits closed behind one line that counts them', async () => {
+    const { container } = show()
+    await screen.findByText(EXAMPLE.query)
+    const notes = container.querySelector('details')!
+    expect(notes.open).toBe(false)
+    expect(plain(notes.querySelector('summary')!)).toBe(`${EXAMPLE.warnings.length} limits on the data. Tap to read.`)
+  })
+
   it('cannot send an empty or blank question', async () => {
     show()
     await screen.findByText(EXAMPLE.query)
