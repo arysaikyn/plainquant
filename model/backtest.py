@@ -1,7 +1,8 @@
 """Run a spec over its period on a snapshot.
 
 Equal weight, rebalanced at the end of each period. A name with no price on the fill day is
-suspended: it is not bought, and a name that should be sold is kept. The seller pays the
+suspended: it is not bought, and a name that should be sold is kept. A name at its daily
+limit on the fill day cannot be bought (up) or sold (down), see `tradable_book`. The seller pays the
 market's stamp duty on the value sold, at the rate in force on the fill day. The ranking uses the close of the
 rebalance day; the trade is filled at the close of the NEXT trading day. Ranking and filling
 on the same close would let the strategy trade at a price it had already seen. At the end of
@@ -59,11 +60,37 @@ def fill_date(snap: Snapshot, day: str) -> str:
     return snap.dates[i] if i < len(snap.dates) else day
 
 
-def tradable_book(snap: Snapshot, held: list[str], target: list[str], day: str) -> list[str]:
-    """`target` after the day's suspensions. A name with no price that day cannot be traded:
-    a new name is not bought (its slot stays empty), a name that should go is kept."""
-    bought = [s for s in target if s in held or day in snap.prices.get(s, {})]
-    stuck = [s for s in held if s not in bought and day not in snap.prices.get(s, {})]
+LIMIT_TOLERANCE = 0.005  # a close this near the limit counts as at the limit (price ticks round the move)
+
+
+def day_move(snap: Snapshot, symbol: str, day: str) -> float | None:
+    """The close-to-close return on `day`, or None without a print that day or before it."""
+    if day not in snap.prices.get(symbol, {}):
+        return None
+    i = bisect_right(snap.dates, day) - 1
+    before = snap.price_at(symbol, snap.dates[i - 1]) if i > 0 else None
+    return snap.prices[symbol][day] / before - 1 if before else None
+
+
+def tradable_book(snap: Snapshot, market: str, held: list[str], target: list[str], day: str) -> list[str]:
+    """`target` after the day's frictions. A name with no price that day is suspended. A name
+    that closed at its up limit cannot be bought; one at its down limit cannot be sold. A name
+    that cannot be bought leaves its slot empty; one that cannot be sold stays in the book."""
+
+    def can_buy(s: str) -> bool:
+        if day not in snap.prices.get(s, {}):
+            return False
+        limit, move = markets.price_limit(market, s, day), day_move(snap, s, day)
+        return not (limit and move is not None and move >= limit - LIMIT_TOLERANCE)
+
+    def can_sell(s: str) -> bool:
+        if day not in snap.prices.get(s, {}):
+            return False
+        limit, move = markets.price_limit(market, s, day), day_move(snap, s, day)
+        return not (limit and move is not None and move <= -limit + LIMIT_TOLERANCE)
+
+    bought = [s for s in target if s in held or can_buy(s)]
+    stuck = [s for s in held if s not in bought and not can_sell(s)]
     return bought + stuck
 
 
@@ -90,7 +117,7 @@ def run_backtest(spec: dict, snap: Snapshot) -> dict:
     books: list[list[str]] = []
     for i, (a, b) in enumerate(zip(marks, marks[1:])):
         fa, fb = fills[i], fills[i + 1]
-        target = tradable_book(snap, held, select(held, screen(spec, snap, a), spec["top_k"], spec["n_drop"]), fa)
+        target = tradable_book(snap, spec["market"], held, select(held, screen(spec, snap, a), spec["top_k"], spec["n_drop"]), fa)
         books.append(target)
         w_old = {s: 1 / len(held) for s in held}
         w_new = {s: 1 / len(target) for s in target}

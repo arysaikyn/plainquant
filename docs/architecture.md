@@ -110,11 +110,15 @@ untraced and the UI already marks them so. It is a research assistant, not the e
 - Market rules are one table, `model/markets.py`. It registers `cn_a` only. Modelled: the
   stamp duty, charged on the seller only, 0.1% until 2023-08-27 and 0.05% from 2023-08-28
   (HKEX circular, China Daily, China Briefing; a change after 2023 was not checked), at the
-  rate in force on the fill day; and suspension, meaning a name with no price on the fill day
-  is not bought and a name that should be sold is kept. Not modelled, and said in every
-  Result: T+1 settlement, daily price limits and 100-share board lots (Shanghai Stock
-  Exchange rule pages, checked 2026-11-23). The limits differ by board and the sources
-  disagree on some boards, so no percentage is written. A Snapshot carries its market; the
+  rate in force on the fill day; suspension, meaning a name with no price on the fill day
+  is not bought and a name that should be sold is kept; and the daily price limit, meaning a
+  name that closes within 0.5 points of its limit on the fill day cannot be bought (up) or
+  sold (down). Limits: 10% on the main board, 20% on ChiNext from 2020-08-24 (Shenzhen
+  Stock Exchange rule pages, China Daily 2020-08-18, checked 2026-11-24); 20% on the STAR
+  Market is from press reports only. Not modelled, and said in every Result: T+1
+  settlement, the 5% limit of ST names (not confirmed from a source) and 100-share board
+  lots. The first five days of a new listing, which have no limit, are not modelled either.
+  A Snapshot carries its market; the
   engine refuses a spec whose market differs from the snapshot's, and refuses a market with
   no entry. `sa`, `hk` and `us` stay in the schema enum and are refused until someone writes
   their rules and holds data for them.
