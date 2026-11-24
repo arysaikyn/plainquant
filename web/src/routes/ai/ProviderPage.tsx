@@ -60,7 +60,7 @@ export default function ProviderPage() {
   }
 
   return (
-    <Screen title={s('title')} leading={<BackButton fallback="/ai" />}>
+    <Screen title={s('title')} leading={<BackButton fallback="/ai/chat" />}>
       <div className="pt-3">
         <p className="text-md leading-relaxed text-muted">{s('lead')}</p>
         <div className="mt-4 inline-flex min-h-9 items-center rounded-full border border-line px-3 text-2xs text-muted">

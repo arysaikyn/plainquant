@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useState } from 'react'
-import { BackButton } from '../../components/BackButton'
+import { Link } from 'react-router-dom'
 import { GridCheck } from '../../components/GridCheck'
 import { Screen } from '../../components/Screen'
 import { EmptyState, ErrorState, Skeleton } from '../../components/states'
@@ -42,7 +42,7 @@ export default function RunPage() {
   }, [tick])
 
   return (
-    <Screen title={s('title')} leading={<BackButton fallback="/strategy" />}>
+    <Screen title={s('title')}>
       <div className="pt-4">
         <p className="text-md leading-relaxed text-muted">{s('lead')}</p>
 
@@ -82,6 +82,14 @@ export default function RunPage() {
         )}
 
         {state.kind === 'ready' && <Ready run={state.run} claims={claims} />}
+
+        <Link
+          to="/ai/chat"
+          className="mt-8 block border-t border-line py-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg"
+        >
+          <span className="text-sm underline decoration-line underline-offset-4">{s('assistant')}</span>
+          <span className="mt-1 block text-xs text-muted">{s('assistantNote')}</span>
+        </Link>
       </div>
     </Screen>
   )

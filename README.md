@@ -151,7 +151,7 @@ in both themes, at 390px and at 320px, plus `axe` accessibility checks.
 
 The market, news and strategy universe is mock data in `web/src/data/mock.ts`.
 The engine in `model/` (stdlib Python, tested on synthetic data) is wired to one
-screen, `/run`, which reads the latest `model/signals.json` through the backend. The AI and Workspace have a real backend path when you connect a provider.
+screen, `/ai`, which reads the latest `model/signals.json` through the backend. The AI and Workspace have a real backend path when you connect a provider.
 
 ## On a desktop
 

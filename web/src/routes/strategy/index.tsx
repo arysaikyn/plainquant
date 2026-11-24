@@ -29,7 +29,7 @@ const fill = (tpl: string, vars: Record<string, string>) =>
   Object.entries(vars).reduce((out, [k, v]) => out.replaceAll(`{${k}}`, v), tpl)
 
 export default function StrategyPage() {
-  const { lang, t } = useI18n()
+  const { lang } = useI18n()
   const s = useStrings(listStrings)
   const f = useStrings(featureStrings)
   const [sort, setSort] = useState<Sort>('recent')
@@ -114,7 +114,7 @@ export default function StrategyPage() {
             text={s('empty')}
             action={
               <Link
-                to="/ai"
+                to="/ai/chat"
                 className="flex min-h-11 items-center rounded-full px-4 text-sm"
                 style={{ border: '1px solid var(--color-line)' }}
               >
@@ -192,11 +192,9 @@ export default function StrategyPage() {
         )}
       </div>
 
-      {/* Dead strategies are evidence, not a hidden drawer. The engine run is the one result
-          that is not a demo: it sits beside them, one tap from the list. */}
+      {/* Dead strategies are evidence, not a hidden drawer. */}
       {[
         { to: '/strategy/graveyard', label: f('graveListLink') },
-        { to: '/run', label: t('route.run') },
       ].map((entry, i) => (
         <Link
           key={entry.to}

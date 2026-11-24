@@ -29,7 +29,7 @@ test('workspace exposes runs, paper, portfolio, alphas, schedule and model', asy
 
 test('AI header opens the workspace', async ({ page }) => {
   await prime(page)
-  await page.goto('/ai')
+  await page.goto('/ai/chat')
   await page.getByRole('link', { name: 'Workspace' }).click()
   await expect(page).toHaveURL(/\/workspace$/)
   await expect(page.getByRole('heading', { name: 'Workspace' })).toBeVisible()
@@ -45,7 +45,7 @@ test('workspace uploads a file and hands it to the agent', async ({ page }) => {
   })
   await expect(page.getByText('mock.pdf')).toBeVisible()
   await page.getByRole('button', { name: 'Ask AI' }).last().click()
-  await expect(page).toHaveURL(/\/ai$/)
+  await expect(page).toHaveURL(/\/ai\/chat$/)
   await expect(page.getByRole('textbox', { name: /Try:/ })).toHaveValue(/mock\.pdf/)
 })
 

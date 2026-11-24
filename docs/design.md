@@ -108,3 +108,30 @@ Three defects the measurement found on the way, all fixed:
 - An 8%-weight sector cell in the sector strip is ~25px wide at 320px, so its
   label is now hidden by a container query instead of printed as `Mat…`; colour
   and the accessible name carry the reading.
+
+## Competitor navigation (R0, 2026-11-24)
+
+Collected by one read-only research worker from vendor pages and search snippets. I did not
+re-read the pages. "Not found" means no page the worker read said it. Do not copy a cell
+marked low.
+
+| App | Bottom tabs | AI entry | Screener | Halal | Source | Confidence |
+|---|---|---|---|---|---|---|
+| moomoo | Watchlist, Markets, Accounts, News, Discover, Me (six) | not found | inside Markets | not found | moomoo.com/us/learn/overview | high (US page only) |
+| Sahm | Trade and Portfolio are named as bar items; order not stated | "Sahm AI", "AI Chat"; place not stated | "Stock Screener" in the All Stocks list | Shariah filter in all ranking lists | App Store release notes v2.8.0 to v3.6.0 | medium |
+| Musaffa | not stated; pages named: Explore, Watchlist, Markets, Profile | not found | in Explore | a Compliance tab on each stock page | musaffa.featurebase.app help | medium |
+| Public.com | not found | "AI Agents" from v5.2.0; place not stated | not found | not found | App Store notes | medium for AI, low for place |
+| Composer | not found | not confirmed | not found | not found | help.composer.trade (Discover is top right) | low |
+| Robinhood | Dashboard, Portfolio, Search, Account (snippet only; page returned 404) | not found | not found | not found | support snippet | low |
+| 同花顺 | not found | 问财 natural-language selection; place not found | 问财选股 | not found | App Store snippet | low |
+
+What the table supports, and no more:
+
+- A five- or six-tab bar is normal (moomoo has six). Cutting to three had no support.
+- Markets and Watchlist stay first-class in a market-led app (moomoo, Sahm).
+- Halal status lives on the stock page (Musaffa) and in the ranking lists (Sahm), so our
+  Sharia verdict belongs beside each holding, as `/ai` already shows.
+- No source places the AI entry in the centre of the bar. Our centre AI tab is a choice,
+  not a copy. The user asked for it.
+
+Not found, so still open: the Sahm tab order, every Composer and Public tab, 同花顺 tabs.

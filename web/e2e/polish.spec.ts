@@ -12,7 +12,7 @@ async function prime(page: Page) {
 
 test('the AI composer is a real surface on a phone', async ({ page }) => {
   await prime(page)
-  await page.goto('/ai')
+  await page.goto('/ai/chat')
   const surface = await page.locator('.composer').evaluate((el) => {
     const style = getComputedStyle(el)
     return {
@@ -28,14 +28,14 @@ test('the AI composer is a real surface on a phone', async ({ page }) => {
 
 test('new question from history opens an empty thread', async ({ page }) => {
   await prime(page)
-  await page.goto('/ai')
+  await page.goto('/ai/chat')
   const box = page.getByRole('textbox', { name: /Try:/ })
   await box.fill('Explain Saudi Aramco')
   await box.press('Enter')
   await expect(page).toHaveURL(/session=/)
   await expect(page.getByText('Explain Saudi Aramco').first()).toBeVisible()
 
-  await page.goto('/ai?new=1')
+  await page.goto('/ai/chat?new=1')
   await expect(page).not.toHaveURL(/session=/)
   await expect(page.getByText('Ask in plain words. See what fits and why.')).toBeVisible()
 })
@@ -61,7 +61,7 @@ test('a story focuses its headline and review has a way back', async ({ page }) 
 
 test('stop keeps the partial answer without adding a second one', async ({ page }) => {
   await prime(page)
-  await page.goto('/ai')
+  await page.goto('/ai/chat')
   const box = page.getByRole('textbox', { name: /Try:/ })
   await box.fill('Explain Saudi Aramco')
   await box.press('Enter')
@@ -96,7 +96,7 @@ test('a failed send restores the question instead of duplicating it', async ({ p
     }
     await route.continue()
   })
-  await page.goto('/ai')
+  await page.goto('/ai/chat')
   const question = 'Explain Saudi Aramco'
   await page.getByRole('textbox', { name: /Try:/ }).fill(question)
   await page.getByRole('textbox', { name: /Try:/ }).press('Enter')

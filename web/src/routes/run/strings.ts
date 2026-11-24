@@ -3,6 +3,8 @@ import type { Dict } from '../../i18n'
 export type RunStrings = {
   title: string
   lead: string
+  assistant: string
+  assistantNote: string
   loading: string
   empty: string
   emptyHow: string
@@ -66,8 +68,10 @@ export type RunStrings = {
 
 export const strings: Dict<RunStrings> = {
   zh: {
-    title: '引擎结果',
-    lead: '引擎的一次运行，原样展示。下面的每个数字都来自引擎，没有估算。',
+    title: '提问',
+    lead: '用日常语言提问。引擎在历史数据上测试，下面的每个数字都来自引擎，没有估算。',
+    assistant: '研究助手',
+    assistantNote: '通用聊天，没有经过引擎检查。数字不可信。',
     loading: '正在读取结果…',
     empty: '还没有运行结果。',
     emptyHow: '用引擎生成一份：',
@@ -128,8 +132,10 @@ export const strings: Dict<RunStrings> = {
     factor_volatility_60d: '60 日波动率',
   },
   en: {
-    title: 'Engine run',
-    lead: 'One run of the engine, shown as it wrote it. Every number below came from the engine; nothing here is estimated.',
+    title: 'Ask',
+    lead: 'Ask in plain words. The engine tests it on history; every number below came from the engine and nothing here is estimated.',
+    assistant: 'Research assistant',
+    assistantNote: 'A general chat. The engine has not checked it, so do not trust its numbers.',
     loading: 'Reading the run…',
     empty: 'No run yet.',
     emptyHow: 'Write one with the engine:',
@@ -190,8 +196,10 @@ export const strings: Dict<RunStrings> = {
     factor_volatility_60d: '60-day volatility',
   },
   ar: {
-    title: 'نتيجة المحرك',
-    lead: 'تشغيل واحد للمحرك كما كتبه. كل رقم أدناه جاء من المحرك، ولا شيء هنا مقدَّر.',
+    title: 'اسأل',
+    lead: 'اسأل بكلمات بسيطة. يختبر المحرك السؤال على بيانات الماضي، وكل رقم أدناه جاء من المحرك ولا شيء هنا مقدَّر.',
+    assistant: 'مساعد البحث',
+    assistantNote: 'محادثة عامة لم يفحصها المحرك، فلا تثق بأرقامها.',
     loading: 'جارٍ قراءة النتيجة…',
     empty: 'لا توجد نتيجة بعد.',
     emptyHow: 'أنشئ واحدة بالمحرك:',

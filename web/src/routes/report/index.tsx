@@ -408,7 +408,7 @@ export default function ReportPage() {
                 </Link>
 
                 <Link
-                  to="/ai"
+                  to="/ai/chat"
                   onClick={() =>
                     setIntake(`${s('nextAiTitle')} — ${st.name[lang]}`, [
                       { kind: 'strategy', id: st.id },

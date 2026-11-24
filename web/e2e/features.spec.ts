@@ -106,14 +106,14 @@ test('returns dock can re-add a removed name', async ({ page }) => {
 
 test('demo AI receipts a refusal and marks untraced numbers', async ({ page }) => {
   await prime(page)
-  await page.goto('/ai')
+  await page.goto('/ai/chat')
   const box = page.getByRole('textbox', { name: /Try:/ })
   await box.fill('Should I buy Saudi Aramco?')
   await box.press('Enter')
   await expect(page.getByText('Out of scope')).toBeVisible()
   await expect(page.getByText('Compliant rewrite')).toBeVisible()
 
-  await page.goto('/ai?new=1')
+  await page.goto('/ai/chat?new=1')
   const next = page.getByRole('textbox', { name: /Try:/ })
   await next.fill('Backtest AAPL for 2024')
   await next.press('Enter')
