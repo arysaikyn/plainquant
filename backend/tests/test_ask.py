@@ -55,7 +55,7 @@ class Ask(unittest.TestCase):
         body = r.json()
         self.assertEqual(body["result"]["spec"], SNAP_SPEC)
         self.assertEqual(body["result"]["query"], "cheap low debt names")
-        self.assertEqual(json.loads(self.signals.read_text()), body["result"])  # /run shows this run
+        self.assertEqual(json.loads(self.signals.read_text()), body["result"])  # /ai shows this run
         self.assertEqual(len(body["claims"]), 1)  # the sentence with its own digit was dropped
         self.assertEqual(body["claims"][0][1]["ref"], "backtest.metrics.annual_return")
         self.assertEqual(body["dropped"], 1)

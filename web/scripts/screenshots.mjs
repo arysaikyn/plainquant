@@ -25,23 +25,24 @@ const SHOTS = [
   { name: 'symbol', route: '/m/2222' },
   { name: 'news', route: '/news' },
   {
+    // The ask page, with the result the backend serves from `model/signals.json`.
+    // Nothing is typed: a typed question would call the model.
     name: 'ai',
     route: '/ai',
     before: async (page) => {
-      await page.getByRole('textbox').first().fill('cheap, low debt, Sharia screen')
-      await page.keyboard.press('Enter')
-      await page.waitForTimeout(6000)
+      await page.getByRole('heading', { name: 'Question' }).waitFor()
     },
   },
   { name: 'strategy', route: '/strategy/low-debt-value' },
   { name: 'screener', route: '/screener' },
   {
     name: 'refusal',
-    route: '/ai',
+    route: '/ai/chat',
     before: async (page) => {
       await page.getByRole('textbox').first().fill('Should I buy Saudi Aramco?')
       await page.keyboard.press('Enter')
       await page.waitForTimeout(2500)
+      await page.getByText('Should I buy Saudi Aramco?').first().scrollIntoViewIfNeeded()
     },
   },
   { name: 'arabic', route: '/', lang: 'ar' },
